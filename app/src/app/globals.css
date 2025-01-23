@@ -7,3 +7,43 @@
     text-wrap: balance;
   }
 }
+
+.bg{
+  background-image: url(../../public/grid.svg);
+  width: auto;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.navbar{
+  backdrop-filter: blur(6px);
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: .4rem;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f100;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #ffffff;
+}
+
+.textcolor{
+  text-shadow: 0 0 1.3rem #1f48ff;
+  animation: blur-animation 2s infinite;
+}
+
+@keyframes blur-animation {
+  0%, 100% {
+    text-shadow: 0 0 1.3rem #1f48ff;
+  }
+  50% {
+    text-shadow: 0 0 2rem #1f48ff;
+  }
+}
