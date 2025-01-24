@@ -45,11 +45,11 @@ export default function SignupPage() {
 
   return (
     <div className="w-full h-screen bg flex flex-col flex-1 items-center justify-center">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Sign Up</h1>
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="w-full max-w-md bg-transparent rounded-lg shadow-lg p-8">
+        <h1 className="text-2xl font-bold text-center text-white">Sign Up</h1>
+        <form onSubmit={handleSubmit} className="space-y-5 text-white ">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-white">
               Email
             </label>
             <input
@@ -59,13 +59,13 @@ export default function SignupPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Enter your email"
             />
           </div>
 
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="username" className="block text-sm font-medium ">
               Username
             </label>
             <input
@@ -75,13 +75,13 @@ export default function SignupPage() {
               value={formData.username}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Choose a username"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium">
               Password
             </label>
             <input
@@ -91,14 +91,14 @@ export default function SignupPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Create a strong password"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full bg-white text-black py-2 px-4 rounded-md shadow"
           >
             Sign Up
           </button>

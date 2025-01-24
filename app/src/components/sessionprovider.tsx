@@ -29,6 +29,7 @@ export const SessionProvider = ({ children }: any) => {
                     setUserData(data);
                 } else if (response.status === 401) {
                     setUserData({});
+                    router.push('/');
                 } else {
                     setError('Failed to fetch user data');
                 }
