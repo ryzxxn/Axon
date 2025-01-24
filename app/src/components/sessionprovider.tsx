@@ -1,21 +1,32 @@
-'use client'
+'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useRouter } from 'next/navigation';
 
-// Define the initial context value
-const initialContextValue = {
+interface UserData {
+    id: string;
+    email: string;
+    username: string;
+}
+
+interface SessionContextValue {
+    userData: UserData | null;
+    loading: boolean;
+    error: string | null;
+}
+
+const initialContextValue: SessionContextValue = {
     userData: null,
     loading: true,
     error: null,
 };
 
-const SessionContext = createContext(initialContextValue);
+const SessionContext = createContext<SessionContextValue>(initialContextValue);
 
-export const SessionProvider = ({ children }: any) => {
-    const [userData, setUserData] = useState<any>(null);
+export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
+    const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -28,7 +39,7 @@ export const SessionProvider = ({ children }: any) => {
                     const data = response.data;
                     setUserData(data);
                 } else if (response.status === 401) {
-                    setUserData({});
+                    setUserData(null);
                     router.push('/');
                 } else {
                     setError('Failed to fetch user data');
@@ -41,7 +52,7 @@ export const SessionProvider = ({ children }: any) => {
         };
 
         fetchUserData();
-    }, []); // Use an empty dependency array to ensure this only runs once on mount
+    }, [router]); // Add `router` to the dependency array
 
     return (
         <SessionContext.Provider value={{ userData, loading, error }}>
@@ -50,7 +61,6 @@ export const SessionProvider = ({ children }: any) => {
     );
 };
 
-// Create a custom hook to use the context
-export const useSessionContext = () => {
+export const useSessionContext = (): SessionContextValue => {
     return useContext(SessionContext);
 };

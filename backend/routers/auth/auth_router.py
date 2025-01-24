@@ -18,6 +18,10 @@ class UserResponse(BaseModel):
     email: EmailStr
     username: str
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 class SessionResponse(BaseModel):
     id: str
     email: str
@@ -111,3 +115,50 @@ async def validate_session(request: Request):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to validate session")
+    
+
+@router.post("/login")
+async def login_user(request: LoginRequest, response: Response):
+    email = request.email
+    password = request.password
+
+    try:
+        # Fetch user details from the database
+        user_response = (
+            supabase.table("users")
+            .select("id, email, password_hash, username")
+            .eq("email", email)
+            .single()
+            .execute()
+        )
+
+        user_data = user_response.data
+
+        user_id = user_data["id"]
+
+        # Check if user exists
+        if not user_data:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        # Verify password
+        if not pwd_context.verify(password, user_data["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        # Generate a new session token
+        session_token = str(uuid.uuid4())
+
+        # Update the sessions table with the new token where user_id matches
+        supabase.table("sessions").update({"token": session_token}).eq("user_id", user_id).execute()
+
+        # Set the session token in a cookie
+        response.set_cookie(
+            key="session-token",
+            value=session_token,
+            httponly=True,
+            max_age=3600  # 1 hour expiration
+        )
+
+        return {"message": "Login successful", "user": {"email": user_data["email"], "username": user_data["username"]}}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to log in: {str(e)}")

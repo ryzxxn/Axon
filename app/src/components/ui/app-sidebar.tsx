@@ -26,32 +26,19 @@ const items = [
 export function AppSidebar() {
   return (
     <>
-    <Sidebar className="h-full flex flex-1">
-      <SidebarContent>
-        <SidebarGroup className="flex flex-1">
-          <SidebarGroupContent className="flex flex-col justify-between h-full flex-1">
-            <div className="flex p-0 text-2xl flex-col">
-              {/* <p className="uppercase text-[#000000] font-bold">axon</p> */}
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-black">
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-            </div>
-            <div>
-                asdas
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+      <div className="flex p-0 text-2xl flex-col">
+        {/* <p className="uppercase text-[#000000] font-bold">axon</p> */}
+        {items.map((item) => (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton asChild className="text-black">
+              <a href={item.url}>
+                <item.icon />
+                <span>{item.title}</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </div>
     </>
   )
 }
