@@ -4,16 +4,24 @@ version = "0.1.0"
 description = ""
 authors = ["Elton Costa <89019551+ryzxxn@users.noreply.github.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = {extras = ["standard"], version = "^0.115.6"}
 google-generativeai = "^0.8.3"
 uvicorn = "^0.34.0"
 supabase = "^2.11.0"
 passlib = "^1.7.4"
 bcrypt = "^4.2.1"
-
+docx = "^0.2.4"
+fitz = "^0.0.1.dev2"
+frontend = "^0.0.3"
+python-multipart = "^0.0.20"
+pymupdf = "^1.25.2"
+python-docx = "^1.1.2"
+yt-dlp = "^2025.1.15"
+youtube-transcript-api = "^0.6.2"
+fastapi = {extras = ["standard"], version = "^0.115.7"}
 
 [build-system]
 requires = ["poetry-core"]

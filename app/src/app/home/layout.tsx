@@ -1,23 +1,27 @@
-import Navbar from '@/components/navbar';
-import { SessionProvider } from '@/components/sessionprovider';
-import { AppSidebar } from '@/components/ui/app-sidebar';
-import { Sidebar, SidebarGroup, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Navbar } from "@/components/navbar"
+import { AppSidebar } from "@/components/ui/app-sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { SessionProvider, useSessionContext } from '@/components/sessionprovider';
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <>
-    <div className='bg-white flex flex-col w-full h-screen flex-1'>
-      <SessionProvider>
-        <main className='flex flex-1 flex-col'>
-          <Navbar/>
-          {children}
-        </main>
-        </SessionProvider>
-    </div>
+    <SessionProvider>
+      <Navbar />
+        <div style={{ "--navbar-height": "4rem" } as React.CSSProperties}>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset className="pt-[var(--navbar-height,4rem)]">
+              <main className="flex-1">{children}</main>
+            </SidebarInset>
+          </SidebarProvider>
+        </div>
+      </SessionProvider>
     </>
-  );
+  )
 }
+

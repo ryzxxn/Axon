@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Response, Request
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr
 from utils.supabase import supabase
 from passlib.context import CryptContext  # type: ignore
 import uuid
@@ -134,11 +134,11 @@ async def login_user(request: LoginRequest, response: Response):
 
         user_data = user_response.data
 
-        user_id = user_data["id"]
-
         # Check if user exists
         if not user_data:
             raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        user_id = user_data["id"]
 
         # Verify password
         if not pwd_context.verify(password, user_data["password_hash"]):
@@ -155,7 +155,7 @@ async def login_user(request: LoginRequest, response: Response):
             key="session-token",
             value=session_token,
             httponly=True,
-            max_age=3600  # 1 hour expiration
+            max_age=86400  # 1 hour expiration
         )
 
         return {"message": "Login successful", "user": {"email": user_data["email"], "username": user_data["username"]}}

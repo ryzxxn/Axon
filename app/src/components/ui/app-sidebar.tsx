@@ -1,44 +1,64 @@
+"use client"
 
-import { Home, Settings,PhoneIncoming, ChartLine, ReceiptText, Logs, BrainCircuit, SquareUserRound } from "lucide-react"
-
+import { Brain, Home, Youtube, FileText, PieChart, Dices } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import Navbar from "../navbar"
 
-// Menu items.
-const items = [
+const menuItems = [
   {
     title: "Home",
-    url: "/home",
     icon: Home,
+    url: "/home",
+  },
+  {
+    title: "Quiz Generator",
+    icon: Dices,
+    url: "/home/quiz",
+  },
+  {
+    title: "Youtube Summary",
+    icon: Youtube,
+    url: "/home/youtube",
+  },
+  {
+    title: "Notes",
+    icon: FileText,
+    url: "#",
+  },
+  {
+    title: "Summary",
+    icon: PieChart,
+    url: "#",
   },
 ]
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <>
-      <div className="flex p-0 text-2xl flex-col">
-        {/* <p className="uppercase text-[#000000] font-bold">axon</p> */}
-        {items.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton asChild className="text-black">
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.title}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
-      </div>
-    </>
+    <Sidebar className="top-[var(--navbar-height,4rem)]" {...props}>
+      <SidebarContent className="bg-white">
+        <SidebarMenu className="p-4">
+          {menuItems.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild>
+                <a href={item.url}>
+                  <item.icon className="size-8" />
+                  <p className="text-[1rem]">{item.title}</p>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarRail />
+    </Sidebar>
   )
 }
+

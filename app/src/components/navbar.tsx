@@ -1,15 +1,21 @@
-import Link from 'next/link'
-import React from 'react'
+import { Sidebar, SidebarProvider, SidebarTrigger } from "./ui/sidebar"
 
-export default function Navbar() {
+export function Navbar() {
   return (
-    <div className="flex justify-between items-center p-3  navbar w-full px-8 border-b text-black">
-        <div>
-          <p className="uppercase leading-none font-bold italic text-md sm:text-md md:text-lg lg:text-xl">axon</p>
-        </div>
-        <div>
-          <Link href='/signup'>Signup</Link>
-        </div>
-    </div>
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 border-b bg-background flex justify-between"
+      style={{ height: "var(--navbar-height, 4rem)" }}
+    >
+      <div className="flex h-full items-center px-4">
+        <p className="italic font-bold text-2xl">AXON</p>
+      </div>
+      
+      <div className="flex h-full items-center px-4">
+        <SidebarProvider>
+          <SidebarTrigger/>
+        </SidebarProvider>
+      </div>
+    </nav>
   )
 }
+
