@@ -1,9 +1,9 @@
 "use client";
 import { Dices, FileText, Home, Menu, PieChart, Youtube } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function Navbar() {
-  const [toggleOptions, setToggleOptions] = useState<boolean>(window.innerWidth > 640);
+  const [toggleOptions, setToggleOptions] = useState<boolean>(true);
 
   const menuItems = [
     {
@@ -33,18 +33,6 @@ export function Navbar() {
     },
   ];
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 640) {
-        setToggleOptions(false);
-      } else {
-        setToggleOptions(true);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   return (
     <div className="left-0 right-0 z-50 border-b bg-background flex justify-between flex-col sticky top-0">

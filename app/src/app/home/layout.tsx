@@ -1,8 +1,6 @@
 "use client"
 import { Navbar } from "@/components/navbar"
 import { SessionProvider } from '@/components/sessionprovider';
-import Lenis from "lenis";
-
 
 export default function Layout({
   children,
@@ -10,16 +8,6 @@ export default function Layout({
   children: React.ReactNode
 }) {
   
-
-  // Initialize Lenis
-const lenis = new Lenis({
-  autoRaf: true,
-});
-
-// Listen for the scroll event and log the event data
-lenis.on('scroll', (e) => {
-  console.log(e);
-});
 
   return (
     <>
