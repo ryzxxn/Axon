@@ -28,7 +28,6 @@ fastembed = "^0.5.1"
 chromadb = "^0.6.3"
 langchain-google-genai = "^2.0.9"
 langchain-groq = "^0.2.3"
-sentence-transformers = "^3.4.0"
 
 [build-system]
 requires = ["poetry-core"]

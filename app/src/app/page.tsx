@@ -6,7 +6,7 @@ export default function Home() {
       {/* <Navbar/> */}
       <div className="py-[10rem] flex justify-center flex-col items-center">
         <p className="textcolor text-[8rem] leading-none font-bold italic text-gray-300 bg-gradient-to-t from-black to-white bg-clip-text p-2">
-          AXON
+          AXONN
         </p>
         <p className=" text-white w-1/3 text-center textcolor1">Personalized learning experiences powered by artificial intelligence. Boost your knowledge and skills faster than ever before.</p>
       </div>

@@ -231,3 +231,6 @@ class QuizeRequest(BaseModel):
 async def generateQuiz(request: QuizeRequest):
     print('')
 
+@router.get("/test")
+async def test():
+    return {"message":"api works"}

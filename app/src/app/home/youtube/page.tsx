@@ -18,7 +18,7 @@ export default function YouTubeTranscript() {
     }
 
     const [url, setUrl] = useState('');
-    const [transcript, setTranscript] = useState('');
+    // const [transcript, setTranscript] = useState('');
     const [summary, setSummary] = useState('');
     const [title, setTitle] = useState('');
     const [thumbnail, setThumbnail] = useState('');
@@ -35,7 +35,7 @@ export default function YouTubeTranscript() {
     const handleSubmit = async (e: any) => {
         e.preventDefault();
         setError('');
-        setTranscript('');
+        // setTranscript('');
         setTitle('');
         setThumbnail('');
         setLoadingTranscript(true);
@@ -46,7 +46,7 @@ export default function YouTubeTranscript() {
                 user_id: user_id
             });
 
-            setTranscript(response.data.transcript);
+            // setTranscript(response.data.transcript);
             setSummary(response.data.summary)
             setTitle(response.data.title);
             setThumbnail(response.data.thumbnail);

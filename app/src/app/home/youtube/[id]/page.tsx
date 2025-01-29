@@ -7,7 +7,6 @@ import { MessageCircle } from 'lucide-react';
 import ChatComponent from '@/components/chat';
 import { useSessionContext } from '@/components/sessionprovider';
 import ReactMarkdown from 'react-markdown'
-import ReactDom from 'react-dom'
 
 export default function VideoDetailsPage() {
 
@@ -16,7 +15,7 @@ export default function VideoDetailsPage() {
     const [videoDetails, setVideoDetails] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>('');
-    const [toggleTranscript, setToggleTranscript] = useState<boolean>(false);
+    // const [toggleTranscript, setToggleTranscript] = useState<boolean>(false);
     const [toggleChat, setToggleChat] = useState<boolean>(true);
     const [user_id, setUser_id] = useState<string>('')
 
@@ -37,13 +36,11 @@ export default function VideoDetailsPage() {
     }, [id]);
 
     useEffect(() =>{
-        console.log(userData);
-        console.log(videoDetails);
         if (userData) {
             setUser_id(userData.id)
         }
         
-    },[userData])
+    },[userData, videoDetails])
 
     if (loading) {
         return <p>Loading...</p>;
@@ -97,11 +94,11 @@ export default function VideoDetailsPage() {
                             </p>
                         )}
                     </div> */}
-                    {toggleTranscript && (
+                    {/* {toggleTranscript && (
                         <p className='font-mono text-sm p-2 bg-gray-200 rounded-md'>
                             {videoDetails.transcript}
                         </p>
-                    )}
+                    )} */}
                 </div>
             </div>
                 {toggleChat && (

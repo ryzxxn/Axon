@@ -9,10 +9,6 @@ export default function Layout({
 }: {
   children: React.ReactNode
 }) {
-
-  if (typeof window === "undefined") {
-    console.log("Oops, `window` is not defined")
-  }
   
 
   // Initialize Lenis
@@ -38,9 +34,5 @@ lenis.on('scroll', (e) => {
     </SessionProvider>
     </>
   )
-}
-
-function useEffect(arg0: () => void, arg1: any[]) {
-  throw new Error("Function not implemented.");
 }
 
