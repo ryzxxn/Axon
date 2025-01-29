@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from service.yt_transcript import get_yt_transcript
-from service.yt_transcript import yt_summarize
+from service.yt_transcript import get_yt_transcript, addYoutubeTranscriptToVector
 from utils.logger import logger
 from utils.supabase import supabase
+from uuid import uuid4
+from datetime import datetime
 
 router = APIRouter()
 
@@ -55,6 +56,8 @@ async def get_yt_transcript_api(request: SubtitleRequest):
                 "video_id": result['video_id'],
                 "summarized_text": result['summary']
             }
+            #add to vector DB
+            await addYoutubeTranscriptToVector(request.user_id, result['video_id'], result['summary'])
             response = supabase.table('youtube_summary').insert(data).execute()
 
             # Check for errors in the response
@@ -63,7 +66,7 @@ async def get_yt_transcript_api(request: SubtitleRequest):
                 logger.error(f'Supabase insert error: {error_message}')
                 raise RuntimeError(error_message)
 
-            logger.info(f'Data inserted successfully: {response.data}')
+            # logger.info(f'Data inserted successfully: {response.data}')
             return result
         else:
             logger.error('Missing required keys or empty transcript in the result')
@@ -101,3 +104,130 @@ def extract_video_id(video_url: str) -> str:
         return video_id
     except Exception as e:
         raise ValueError(f"Invalid YouTube URL: {e}")
+
+
+class VideoSummary(BaseModel):
+    title: str
+    thumbnail: str
+    video_id: str
+
+@router.get("/videos", response_model=list[VideoSummary])
+async def get_user_videos(user_id: str):
+    try:
+        # Fetch all videos scanned by the user
+        response = (
+            supabase.table('youtube_summary')
+            .select('title, thumbnail, video_id')
+            .eq('user_id', user_id)
+            .execute()
+        )
+
+        if response.data:
+            return response.data
+        else:
+            return []
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch videos: {str(e)}")
+    
+class VideoDetails(BaseModel):
+    id:str
+    title: str
+    thumbnail: str
+    transcript: str
+    video_id: str
+    summarized_text: str
+
+@router.get("/video_details", response_model=VideoDetails)
+async def get_video_details(video_id: str):
+    try:
+        # Fetch video details from the database
+        response = (
+            supabase.table('youtube_summary')
+            .select('id, title, thumbnail, transcript, video_id, summarized_text')
+            .eq('video_id', video_id)
+            .single()
+            .execute()
+        )
+
+        if response.data:
+            return response.data
+        else:
+            raise HTTPException(status_code=404, detail="Video not found")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch video details: {str(e)}")
+    
+class ChatInitRequest(BaseModel):
+    user_id: str
+    video_id: str
+
+@router.post("/initialize_chat")
+async def initialize_chat(request: ChatInitRequest):
+    # Check if a chat with the same user_id and video_id exists
+    existing_chat = supabase.table("chat").select("id").eq("user_id", request.user_id).eq("video_id", request.video_id).execute()
+
+    if existing_chat.data:
+        # If a chat exists, return the existing chat_id
+        chat_id = existing_chat.data[0]["id"]
+    else:
+        # If no chat exists, create a new chat
+        chat_id = str(uuid4())
+        chat_data = {
+            "id": chat_id,
+            "user_id": request.user_id,
+            "video_id": request.video_id,
+            "chat_content": [],
+            "created_at": datetime.utcnow().isoformat()
+        }
+        response = supabase.table("chat").insert(chat_data).execute()
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail="Failed to initialize chat")
+
+    return {"chat_id": chat_id}
+
+class AddMessageRequest(BaseModel):
+    chat_id: str
+    user_id: str
+    message: str
+    sender: str
+
+@router.post("/add_message")
+async def add_message(request: AddMessageRequest):
+    # Fetch the current chat content
+    response = supabase.table("chat").select("chat_content").eq("id", request.chat_id).execute()
+    if response is None:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    chat_content = response.data[0]["chat_content"]
+
+    new_message = {
+        "sender": request.sender,
+        "message": request.message,
+        "timestamp": str(datetime.now())  # Replace with actual timestamp
+    }
+    
+    # Append the new message
+    chat_content.append(new_message)
+    
+    # Update the chat session with the new chat content
+    update_response = supabase.table("chat").update({"chat_content": chat_content}).eq("id", request.chat_id).execute()
+    if update_response is None:
+        raise HTTPException(status_code=500, detail="Failed to add message")
+    return {"message": "Message added successfully"}
+
+class ChatHistoryRequest(BaseModel):
+    chat_id: int
+
+@router.post("/get_chat_history")
+async def get_chat_history(request: ChatInitRequest):
+    response = supabase.table("chat").select("chat_content").eq("user_id", request.user_id).eq("video_id", request.video_id).execute()
+    if response is None:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    return {"chat_content": response.data[0]["chat_content"]}
+
+class QuizeRequest(BaseModel):
+    user_id: str
+@router.post("/generateQuiz")
+async def generateQuiz(request: QuizeRequest):
+    print('')
+

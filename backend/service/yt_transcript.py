@@ -1,3 +1,4 @@
+import httpx
 from youtube_transcript_api import YouTubeTranscriptApi # type: ignore
 from urllib.parse import urlparse, parse_qs
 import yt_dlp # type: ignore
@@ -101,6 +102,26 @@ def get_yt_transcript(video_url: str) -> dict:
 def yt_summarize(transcript_text:str):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(f'Summerize the text: {transcript_text}')
+    response = model.generate_content(f'Summerize the text, cover every topic possible.: {transcript_text}')
 
     return response.text
+
+
+async def addYoutubeTranscriptToVector(user_id: str, video_id: str, transcript: str):
+    url = f"{os.getenv('BACKEND_URL')}/ingestVideo"  # Ensure the environment variable is set correctly
+
+    # Use BytesIO to simulate the file upload in memory
+    data = {'user_id': user_id, 'video_id': video_id, 'transcript': transcript}
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=data)
+            response.raise_for_status()  # Raises an exception for 4xx/5xx responses
+    except httpx.HTTPStatusError as exc:
+        print(f"HTTP error occurred: {exc.response.status_code} - {exc.response.text}")
+    except httpx.RequestError as exc:
+        print(f"An error occurred while requesting {exc.request.url!r}: {exc}")
+    except Exception as exc:
+        print(f"An unexpected error occurred: {exc}")
+    else:
+        print("Transcript ingested successfully")

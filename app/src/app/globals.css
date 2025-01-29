@@ -15,25 +15,6 @@
   background-size: contain;
 }
 
-.navbar{
-  backdrop-filter: blur(6px);
-}
-
-/* width */
-::-webkit-scrollbar {
-  width: .4rem;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  background: #f1f1f100;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #ffffff;
-}
-
 .textcolor {
   text-shadow: 0 0 1.3rem #1f48ff;
   animation: blur-animation 2s infinite, fade-in 2s forwards;
@@ -179,3 +160,37 @@
       background-color: #e0e0e0;
   }
 }
+
+.transcript-scroll{
+  /* width */
+  ::-webkit-scrollbar {
+    width: .4rem;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f100;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #be0101;
+  }
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-message.sent {
+  background-color: #f9f9f9;
+  align-self: flex-end;
+}
+
+.chat-message.received {
+  background-color: #f4f4f4;
+  align-self: flex-start;
+}
+

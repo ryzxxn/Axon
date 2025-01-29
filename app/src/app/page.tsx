@@ -2,7 +2,7 @@
 export default function Home() {
   return (
     <>
-    <div className="w-full h-screen bg flex flex-col flex-1">
+    <div className="w-full h-screen bg flex flex-col flex-1 bg-black">
       {/* <Navbar/> */}
       <div className="py-[10rem] flex justify-center flex-col items-center">
         <p className="textcolor text-[8rem] leading-none font-bold italic text-gray-300 bg-gradient-to-t from-black to-white bg-clip-text p-2">

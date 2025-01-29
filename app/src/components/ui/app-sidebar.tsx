@@ -31,7 +31,7 @@ const menuItems = [
   {
     title: "Notes",
     icon: FileText,
-    url: "#",
+    url: "/home/notes",
   },
   {
     title: "Summary",

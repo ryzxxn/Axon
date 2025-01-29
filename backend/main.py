@@ -4,6 +4,10 @@ from routers.auth.auth_router import router as auth_router
 from routers.ingest.ingest_router import router as ingest_router
 from routers.service.service_router import router as service_router
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 

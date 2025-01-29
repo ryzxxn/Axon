@@ -2,13 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useSessionContext } from '@/components/sessionprovider';
-import MarkdownRenderer from '@/components/markdown';
+import YoutubeSummaryLibrary from '@/components/yt_summary_library';
+
+import ReactMarkdown from 'react-markdown'
 
 export default function YouTubeTranscript() {
     const { userData, loading } = useSessionContext();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <p></p>;
     }
 
     if (!userData) {
@@ -56,70 +58,63 @@ export default function YouTubeTranscript() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-white py-5 px-5 gap-6 w-full">
-            <div>
-                <h1 className="text-3xl font-bold text-gray-800">YouTube Summary</h1>
-                <p>Summarize YouTube videos effortlessly</p>
+        <div className="flex flex-col p-5 flex-1 h-full">
+            <div className='py-4'>
+                <h1 className="text-2xl font-bold text-gray-700">YouTube Summary</h1>
+                <p className='text-sm'>Effortlessly summarize YouTube videos and enhance your understanding with insightful questions.</p>
             </div>
-            <form onSubmit={handleSubmit} className="max-w-md bg-white shadow-sm rounded-lg flex flex-col justify-evenly gap-4 w-full">
-                <label className="">
-                    <span className="text-gray-700 font-medium">Enter YouTube URL</span>
-                    <input
-                        type="text"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        required
-                        className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 focus:outline-none"
-                        placeholder="https://www.youtube.com/watch?v="
-                    />
-                </label>
-                <button
-                    type="submit"
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
-                    disabled={loadingTranscript}
-                >
-                    {loadingTranscript ? (
-                        <div>
-                            <p>Loading...</p>
-                        </div>
-                    ) : (
-                        <p>Scan video</p>
-                    )}
-                </button>
+            <form onSubmit={handleSubmit} className="bg-white flex flex-col justify-evenly gap-4 w-full">
+                <div className='flex flex-1 w-full items-center justify-between gap-4'>
+                    <div className="flex gap-2 flex-col w-full">
+                        <input
+                            type="text"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            required
+                            className="block w-full px-3 py-1 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 focus:outline-none"
+                            placeholder="https://www.youtube.com/watch?v="
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        className="w-[max-content] text-nowrap bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                        disabled={loadingTranscript}
+                    >
+                        {loadingTranscript ? (
+                            <div>
+                                <p>Loading...</p>
+                            </div>
+                        ) : (
+                            <p>Summarize Video</p>
+                        )}
+                    </button>
+                </div>
             </form>
             {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
             {title && (
                 <div className="w-full bg-white shadow-md rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4 text-gray-800">
+                    <h2 className="text-xl font-bold mb-4 text-gray-700">
                         {loadingTranscript ? (
                             <div className="skeleton-loader w-3/4 h-6 bg-gray-200 rounded-md" />
                         ) : (
-                            title
+                            <p className='text-4xl'>{title}</p>
                         )}
                     </h2>
                     {thumbnail && !loadingTranscript ? (
-                        <img src={thumbnail} alt={title} className="w-full rounded-md mb-4" />
+                        <img src={thumbnail} alt={title} className="rounded-md mb-4 w-1/3" />
                     ) : (
                         <div className="skeleton-loader w-full h-48 bg-gray-200 rounded-md mb-4" />
                     )}
                     {summary && (
                         <div className='p-4 bg-gray-100 rounded-md'>
-                            <h2 className='text-xl font-bold text-gray-800'>Summary</h2>
-                            <MarkdownRenderer content={summary}/>
+                            <h2 className='text-2xl font-bold text-gray-700'>Summary</h2>
+                           <ReactMarkdown>{summary}</ReactMarkdown>
+                            <p>{summary}</p>
                         </div>
                     )}
-                    {/* <pre className="bg-gray-100 p-4 rounded-md text-gray-700 whitespace-pre-wrap">
-                        {summary}
-                    </pre> */}
                 </div>
             )}
-            {/* {userData && (
-                <div>
-                    <h1>Welcome, {userData.username}!</h1>
-                    <p>Email: {userData.email}</p>
-                    <p>ID: {userData.id}</p>
-                </div>
-            )} */}
+            <YoutubeSummaryLibrary/>
         </div>
     );
 }

@@ -1,27 +1,46 @@
+"use client"
 import { Navbar } from "@/components/navbar"
-import { AppSidebar } from "@/components/ui/app-sidebar"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { SessionProvider, useSessionContext } from '@/components/sessionprovider';
+import { SessionProvider } from '@/components/sessionprovider';
+import Lenis from "lenis";
 
-export default function RootLayout({
+
+export default function Layout({
   children,
 }: {
   children: React.ReactNode
 }) {
+
+  if (typeof window === "undefined") {
+    console.log("Oops, `window` is not defined")
+  }
+  
+
+  // Initialize Lenis
+const lenis = new Lenis({
+  autoRaf: true,
+});
+
+// Listen for the scroll event and log the event data
+lenis.on('scroll', (e) => {
+  console.log(e);
+});
+
   return (
     <>
     <SessionProvider>
-      <Navbar />
-        <div style={{ "--navbar-height": "4rem" } as React.CSSProperties}>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="pt-[var(--navbar-height,4rem)]">
-              <main className="flex-1">{children}</main>
-            </SidebarInset>
-          </SidebarProvider>
+      <div className="flex flex-col bg-white flex-1 max-h-screen">
+        <Navbar />
+
+        <div className="flex flex-col flex-1 bg-white h-full">
+          {children}
         </div>
-      </SessionProvider>
+      </div>
+    </SessionProvider>
     </>
   )
+}
+
+function useEffect(arg0: () => void, arg1: any[]) {
+  throw new Error("Function not implemented.");
 }
 

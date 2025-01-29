@@ -1,21 +1,83 @@
-import { Sidebar, SidebarProvider, SidebarTrigger } from "./ui/sidebar"
+"use client";
+import { Dices, FileText, Home, Menu, PieChart, Youtube } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
-  return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 border-b bg-background flex justify-between"
-      style={{ height: "var(--navbar-height, 4rem)" }}
-    >
-      <div className="flex h-full items-center px-4">
-        <p className="italic font-bold text-2xl">AXON</p>
-      </div>
-      
-      <div className="flex h-full items-center px-4">
-        <SidebarProvider>
-          <SidebarTrigger/>
-        </SidebarProvider>
-      </div>
-    </nav>
-  )
-}
+  const [toggleOptions, setToggleOptions] = useState<boolean>(window.innerWidth > 640);
 
+  const menuItems = [
+    {
+      title: "Home",
+      icon: Home,
+      url: "/home",
+    },
+    {
+      title: "Quiz Generator",
+      icon: Dices,
+      url: "/home/quiz",
+    },
+    {
+      title: "Youtube Summary",
+      icon: Youtube,
+      url: "/home/youtube",
+    },
+    {
+      title: "Notes",
+      icon: FileText,
+      url: "/home/notes",
+    },
+    {
+      title: "Summary",
+      icon: PieChart,
+      url: "#",
+    },
+  ];
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 640) {
+        setToggleOptions(false);
+      } else {
+        setToggleOptions(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div className="left-0 right-0 z-50 border-b bg-background flex justify-between flex-col sticky top-0">
+      <div className="flex w-full justify-between p-2 border-b">
+        <div className="flex h-full items-center px-4">
+          <p className="italic font-bold text-2xl">AXON</p>
+        </div>
+        <div className="flex items-center px-4">
+          <Menu onClick={() => setToggleOptions(!toggleOptions)} className="cursor-pointer" />
+        </div>
+      </div>
+
+      {toggleOptions && (
+        <div>
+          <div className="flex bg-white">
+            <div className="flex flex-col w-full sm:flex sm:flex-row">
+              {menuItems.map((item) => (
+                <div key={item.title}>
+                  <div className="p-2">
+                    <a
+                      href={item.url}
+                      className="flex items-center gap-3 hover:bg-slate-100 p-1 rounded-md"
+                    >
+                      <item.icon className="size-5" />
+                      <p className="text-sm text-nowrap sm">{item.title}</p>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

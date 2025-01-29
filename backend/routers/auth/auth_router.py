@@ -128,7 +128,6 @@ async def login_user(request: LoginRequest, response: Response):
             supabase.table("users")
             .select("id, email, password_hash, username")
             .eq("email", email)
-            .single()
             .execute()
         )
 
@@ -138,27 +137,41 @@ async def login_user(request: LoginRequest, response: Response):
         if not user_data:
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        user_id = user_data["id"]
+        user_id = user_data[0]["id"]
 
         # Verify password
-        if not pwd_context.verify(password, user_data["password_hash"]):
+        if not pwd_context.verify(password, user_data[0]["password_hash"]):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
         # Generate a new session token
         session_token = str(uuid.uuid4())
 
-        # Update the sessions table with the new token where user_id matches
-        supabase.table("sessions").update({"token": session_token}).eq("user_id", user_id).execute()
+        # Check if a session exists for the user_id
+        session_response = (
+            supabase.table("sessions")
+            .select("id")
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        session_data = session_response.data
+
+        if session_data:
+            # Update the sessions table with the new token where user_id matches
+            supabase.table("sessions").update({"token": session_token}).eq("user_id", user_id).execute()
+        else:
+            # Insert a new session record
+            supabase.table("sessions").insert({"user_id": user_id, "token": session_token}).execute()
 
         # Set the session token in a cookie
         response.set_cookie(
             key="session-token",
             value=session_token,
             httponly=True,
-            max_age=86400  # 1 hour expiration
+            max_age=86400  # 1 day expiration
         )
 
-        return {"message": "Login successful", "user": {"email": user_data["email"], "username": user_data["username"]}}
+        return {"message": "Login successful", "user": {"email": user_data[0]["email"], "username": user_data[0]["username"]}}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to log in: {str(e)}")
