@@ -6,7 +6,7 @@ const axiosInstance = axios.create({
     withCredentials: true, // Include cookies in requests
     headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': 'https://api.axonn.xyz/',
     },
 });
 
