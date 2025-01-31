@@ -39,7 +39,7 @@ async def get_yt_transcript_api(request: SubtitleRequest):
             }
 
         # Fetch the transcript and metadata
-        result = get_yt_transcript(request.video_url)
+        result = await get_yt_transcript(request.video_url)
 
         # Check if all required keys are present and transcript is not empty
         required_keys = ['title', 'thumbnail', 'transcript', 'video_id', 'summary']
@@ -234,3 +234,65 @@ async def generateQuiz(request: QuizeRequest):
 @router.get("/test")
 async def test():
     return {"message":"api works"}
+
+class FolderCreate(BaseModel):
+    name: str
+    user_id:str
+
+class NoteCreate(BaseModel):
+    title: str
+    content: str
+
+@router.post("/create-folder/")
+async def create_folder(request: FolderCreate):
+    try:
+        user_id = request.user_id
+        folder_data = {
+            "user_id": user_id,
+            "name": request.name,
+        }
+        response = supabase.table('folders').insert(folder_data).execute()
+        logger.info(f'{response}')
+
+        if response.data is None:
+            raise HTTPException(status_code=500, detail="Failed to create folder")
+
+        return {"response": "created folder"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/get-folders/")
+async def get_folders(user_id: str):
+    try:
+        response = supabase.table('folders').select('*').eq('user_id', str(user_id)).execute()
+        logger.info(f'{response}')
+
+        if response.data is None:
+            raise HTTPException(status_code=500, detail="Failed to retrieve folders")
+        
+        return response
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/create-note/")
+async def create_note(note: NoteCreate):
+    try:
+        note_id = uuid4()
+        note_data = {
+            "id": str(note_id),
+            "folder_id": str(note.folder_id),
+            "title": note.title,
+            "content": note.content,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        response = supabase.table('notes').insert(note_data).execute()
+
+        if response.get('status_code') != 201:
+            raise HTTPException(status_code=500, detail="Failed to create note")
+
+        return {"id": str(note_id), "folder_id": str(note.folder_id), "title": note.title, "content": note.content, "created_at": note_data["created_at"]}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

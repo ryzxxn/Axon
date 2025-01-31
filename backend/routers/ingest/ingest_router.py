@@ -147,21 +147,22 @@ async def query_file(request: QueryVideoRequest):
     video_id = request.video_id
     query = request.query
 
-    corrected_query = "always answer in first person, you are a teaching assistant named Axon, you don't need to mention it.:" + query
+    corrected_query = "always answer in first person, you are a teaching assistant named Axon, you don't need to mention it, also only awnser if the data is provided to you.:" + query
 
     # Retrieve relevant documents for the user
-    docs = vector_store.similarity_search(query, k=20, filter={"video_id": video_id})
-    print(f"Docs retrieved: {docs}")  # Debugging statement
+    docs = vector_store.similarity_search(query, k=10, filter={"video_id": video_id})
 
-    # Generate response using the QA chain
-    response = qa_chain.run({"input_documents": docs, "query": corrected_query})
-    if response:
-        print(f"Response: {response}")
-        return {"response": response}
+    if docs is None:
+        return {'response':"i dont know."}
+    else:
+        # Generate response using the QA chain
+        response = qa_chain.run({"input_documents": docs, "query": corrected_query})
+        if response:
+            return {"response": response}
 
-    # Handle cases where the QA chain returns an empty response
-    if not response or response.strip() == "":
-        return {"response": "No data available."}
+        # Handle cases where the QA chain returns an empty response
+        if not response or response.strip() == "":
+            return {"response": "No data available."}
     
 
 

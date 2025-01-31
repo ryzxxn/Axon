@@ -58,13 +58,13 @@ export default function YouTubeTranscript() {
     };
 
     return (
-        <div className="flex flex-col p-5 flex-1 h-full">
-            <div className='py-4'>
-                <h1 className="text-2xl font-bold text-gray-700">YouTube Summary</h1>
-                <p className='text-sm'>Effortlessly summarize YouTube videos and enhance your understanding with insightful questions.</p>
+        <div className="flex flex-col p-4 flex-1 gap-4 max-h-[calc(100vh-50px)]">
+            <div className='py-0'>
+                <h1 className="text-2xl font-bold text-gray-700 leading-none">YouTube Summary</h1>
+                <p className='text-sm py-1'>Effortlessly summarize YouTube videos and enhance your understanding with insightful questions.</p>
             </div>
             <form onSubmit={handleSubmit} className="bg-white flex flex-col justify-evenly gap-4 w-full">
-                <div className='flex flex-1 w-full items-center justify-between gap-4'>
+                <div className='flex flex-1 w-full items-left justify-between gap-4 flex-col sm:flex-row'>
                     <div className="flex gap-2 flex-col w-full">
                         <input
                             type="text"

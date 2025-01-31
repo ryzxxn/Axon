@@ -4,23 +4,15 @@ from routers.auth.auth_router import router as auth_router
 from routers.ingest.ingest_router import router as ingest_router
 from routers.service.service_router import router as service_router
 from fastapi.middleware.cors import CORSMiddleware
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = FastAPI()
 
-allowed_origins = [
-    "https://www.axonn.xyz/"
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["http://localhost:3000"],  # Update with your frontend URL
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["X-Requested-With", "Content-Type"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include the router

@@ -91,7 +91,7 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }) => {
 
   return (
     <div className="w-full p-4 flex flex-col justify-between flex-1 h-full">
-        <div className='flex flex-1 gap-4 flex-col'>
+        <div className='flex flex-1 gap-3 flex-col pb-4 overflow-y-scroll'>
           <div className="flex flex-col gap-2">
             {messages.map((msg, index) => (
               <div key={index} className={` ${msg.sender === userId ? 'sent' : 'received'}`}>

@@ -37,7 +37,7 @@ export default function YoutubeSummaryLibrary() {
     return (
         <div>
             <div className='flex items-center justify-between'>
-                <h1 className="font-bold text-2xl py-5 text-gray-700">Your Videos</h1>
+                <p className="font-bold text-2xl py-3 text-gray-700">Your Videos</p>
                 <div className="flex">
                     <h3 className="font-semibold text-gray-700">Total Videos:</h3>
                     <p>{videos.length}</p>
@@ -59,10 +59,10 @@ export default function YoutubeSummaryLibrary() {
                 </div>
             ) : videos.length > 0 ? (
                 <>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 place-content-between cursor-pointer">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 place-content-between cursor-pointer p-4">
                         {videos.map((video: any) => (
                             <Link
-                                href={`/home/youtube/${video.video_id}`}
+                                href={`/dashboard/youtube/${video.video_id}`}
                                 key={video.video_id}
                                 className="flex flex-col justify-between shadow-md rounded-md gap-0"
                             >
@@ -74,7 +74,7 @@ export default function YoutubeSummaryLibrary() {
                                     height={200}
                                     quality={50}
                                 />
-                                <h2 className="text-sm h-[50px] overflow-hidden py-2 px-2 line-clamp-2">
+                                <h2 className="text-[.8rem] h-[50px] overflow-hidden py-2 px-2 line-clamp-2">
                                     {video.title}
                                 </h2>
                             </Link>

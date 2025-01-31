@@ -55,10 +55,10 @@ export default function VideoDetailsPage() {
     }
 
     return (
-        <div className='flex flex-1 h-full'>
-            <div className='flex flex-1 flex-col h-full'>
-                <div className='flex justify-between p-4 font-bold text-2xl bg-white items-center border-b'>
-                    <h1 className='leading-none'>{videoDetails.title}</h1>
+        <div className='flex max-h-[calc(100vh-50px)]'>
+            <div className='flex flex-1 flex-col border-r h-full'>
+                <div className='flex justify-between p-2 font-bold text-1xl bg-white items-center border-b sticky top-0'>
+                    <p className='leading-none'>{videoDetails.title}</p>
                     <div className='relative flex justify-end p-2'>
                         <MessageCircle onClick={() => setToggleChat(!toggleChat)} />
                     </div>
@@ -71,12 +71,12 @@ export default function VideoDetailsPage() {
                     height={1000}
                     quality={50}
                 />
-                <div className='px-4 flex flex-col flex-1'>
+                <div className='px-4 flex flex-col flex-1 h-full'>
                     <p className='font-bold text-2xl'>Summary</p>
                     <ReactMarkdown>{videoDetails.summarized_text}</ReactMarkdown>
                 </div>
-                <div className='p-4 flex flex-col gap-4 justify-center'>
-                    {/* <div className='flex justify-between'>
+                {/* <div className='p-4 flex flex-col gap-4 justify-center'>
+                    <div className='flex justify-between'>
                         <p className='font-bold text-2xl'>Video Transcript</p>
                         {toggleTranscript ? (
                             <p
@@ -93,16 +93,17 @@ export default function VideoDetailsPage() {
                                 Show more
                             </p>
                         )}
-                    </div> */}
-                    {/* {toggleTranscript && (
+                    </div>
+                    {toggleTranscript && (
                         <p className='font-mono text-sm p-2 bg-gray-200 rounded-md'>
                             {videoDetails.transcript}
                         </p>
-                    )} */}
-                </div>
+                    )}
+                </div> */}
+                
             </div>
                 {toggleChat && (
-                    <div className='border-l flex h-full flex-1'>
+                    <div className='flex h-full flex-1'>
                     <ChatComponent videoId={videoDetails.id} userId={user_id} video_id={id}/>
                     </div>
                 )}
