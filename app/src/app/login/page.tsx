@@ -36,7 +36,7 @@ export default function SignupPage() {
       toast.success('Login successful!');
       setSuccess("Login successful! Redirecting...");
       setFormData({ email: "", password: "" });
-      router.push("/home");
+      router.push("/dashboard");
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
         toast.error(err.response.data.detail);
