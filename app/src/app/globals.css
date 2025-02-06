@@ -160,8 +160,6 @@
       background-color: #e0e0e0;
   }
 }
-
-.transcript-scroll{
   /* width */
   ::-webkit-scrollbar {
     width: .4rem;
@@ -174,9 +172,8 @@
 
   /* Handle */
   ::-webkit-scrollbar-thumb {
-    background: #be0101;
+    background: #ffffff;
   }
-}
 
 .chat-container {
   display: flex;

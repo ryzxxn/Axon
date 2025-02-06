@@ -1,9 +1,12 @@
+from fastapi import HTTPException
 import httpx
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai #type: ignore
 import yt_dlp #type: ignore
 from utils.logger import logger
+import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -43,8 +46,16 @@ def get_video_metadata(video_url: str) -> dict:
     Raises:
         RuntimeError: If fetching metadata fails.
     """
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cookies_path = os.path.join(script_dir, 'cookies.txt')
+
     ydl_opts = {
         'quiet': True,
+        'cookiefile': cookies_path,
+        'username': os.getenv('YT_EMAIL'),
+        'password': os.getenv('YT_PASSWORD'),
+        'usenetrc': True
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -124,7 +135,7 @@ async def get_yt_transcript(video_url: str) -> dict:
 def yt_summarize(transcript_text:str):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(f'Summarize the text, covering every topic possible: {transcript_text}')
+    response = model.generate_content(f'Summarize the text, covering every fact, sentences while preserving as much detail as possible: {transcript_text}')
 
     return response.text
 
@@ -146,3 +157,26 @@ async def addYoutubeTranscriptToVector(user_id: str, video_id: str, transcript: 
         print(f"An unexpected error occurred: {exc}")
     else:
         print("Transcript ingested successfully")
+
+async def fetch_transcript_from_supabase(video_url: str) -> dict:
+    SUPABASE_API_KEY = os.environ.get("SUPABASE_KEY")
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://uuqdokzuopkpbfyianvu.supabase.co/functions/v1/fetch_transcript",
+                json={"video_url": video_url},
+                headers={
+                    "content-type": "application/json",
+                    "Authorization": f"Bearer {SUPABASE_API_KEY}"     
+                    }
+            )
+
+            if response.status_code == 200:
+                logger.info(response)
+                return response.json()
+            else:
+                logger.error(f"Error fetching transcript: {response.status_code} - {response.text}")
+                raise HTTPException(status_code=response.status_code, detail="Error fetching transcript")
+    except httpx.RequestError as exc:
+        logger.error(f"An error occurred while requesting {exc.request.url!r}: {exc}")
+        raise HTTPException(status_code=500, detail="Error connecting to Supabase function")

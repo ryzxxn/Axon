@@ -5,6 +5,7 @@ import { useSessionContext } from '@/components/sessionprovider';
 import YoutubeSummaryLibrary from '@/components/yt_summary_library';
 
 import ReactMarkdown from 'react-markdown'
+import { Youtube } from 'lucide-react';
 
 export default function YouTubeTranscript() {
     const { userData, loading } = useSessionContext();
@@ -14,7 +15,7 @@ export default function YouTubeTranscript() {
     }
 
     if (!userData) {
-        return <p>Please log in to use this feature.</p>;
+        return <p className='text-white'>Please log in to use this feature.</p>;
     }
 
     const [url, setUrl] = useState('');
@@ -22,7 +23,6 @@ export default function YouTubeTranscript() {
     const [summary, setSummary] = useState('');
     const [title, setTitle] = useState('');
     const [thumbnail, setThumbnail] = useState('');
-    const [error, setError] = useState('');
     const [user_id, setUser_id] = useState('');
     const [loadingTranscript, setLoadingTranscript] = useState(false);
 
@@ -34,7 +34,6 @@ export default function YouTubeTranscript() {
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
-        setError('');
         // setTranscript('');
         setTitle('');
         setThumbnail('');
@@ -51,70 +50,89 @@ export default function YouTubeTranscript() {
             setTitle(response.data.title);
             setThumbnail(response.data.thumbnail);
         } catch (error) {
-            setError('Error fetching transcript. Please check the URL and try again.');
+            
         } finally {
             setLoadingTranscript(false);
         }
     };
 
     return (
-        <div className="flex flex-col p-4 flex-1 gap-4 max-h-[calc(100vh-50px)]">
-            <div className='py-0'>
-                <h1 className="text-2xl font-bold text-gray-700 leading-none">YouTube Summary</h1>
-                <p className='text-sm py-1'>Effortlessly summarize YouTube videos and enhance your understanding with insightful questions.</p>
-            </div>
-            <form onSubmit={handleSubmit} className="bg-white flex flex-col justify-evenly gap-4 w-full">
-                <div className='flex flex-1 w-full items-left justify-between gap-4 flex-col sm:flex-row'>
-                    <div className="flex gap-2 flex-col w-full">
-                        <input
-                            type="text"
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                            required
-                            className="block w-full px-3 py-1 border border-gray-300 rounded-md focus:ring focus:ring-blue-300 focus:outline-none"
-                            placeholder="https://www.youtube.com/watch?v="
-                        />
+        <>
+        <div className='w-full flex flex-col'>
+            <div className='p-4 text-gray-200 flex items-center gap-0 flex-col justify-start border-b  border-[rgb(31,31,31)]'>
+                <div className='flex flex-col w-full'>
+                    <div className='flex items-center justify-start leading-none gap-2 w-full text-gray-20'>
+                        <Youtube className='size-[3rem] leading-none'/>
+                        <h1 className="font-bold leading-none text-[1.4rem]">YouTube Summary</h1>
                     </div>
-                    <button
-                        type="submit"
-                        className="w-[max-content] text-nowrap bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
-                        disabled={loadingTranscript}
-                    >
-                        {loadingTranscript ? (
-                            <div>
-                                <p>Loading...</p>
-                            </div>
-                        ) : (
-                            <p>Summarize Video</p>
-                        )}
-                    </button>
+                    <p className='text-[.8rem]'>Effortlessly generate a comprehensive summary of the YouTube video</p>
                 </div>
-            </form>
-            {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+
+                <form onSubmit={handleSubmit} className=" w-full">
+                    <div className='flex items-center gap-4'>
+                        <div className="flex gap-2 flex-col w-full">
+                            <input
+                                type="text"
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
+                                required
+                                className=" bg-transparent border-b px-3  py-2 placeholder:text-[rgb(61,61,61)] outline-none"
+                                placeholder="https:www.youtube.com/watch?v="
+                            />
+                        </div> 
+                        <button
+                            type="submit"
+                            className="w-[max-content] text-[.9rem] text-nowrap bg-[rgb(24,24,24)] text-white  disabled:bg-black disabled:text-white disabled:cursor-not-allowed p-2 rounded-md border-none"
+                            disabled={loadingTranscript}
+                        >
+                            {loadingTranscript ? (
+                                <div>
+                                    <p>Loading...</p>
+                                </div>
+                            ) : (
+                                <p>Summarize</p>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            
             {title && (
-                <div className="w-full bg-white shadow-md rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4 text-gray-700">
+                <div className='p-4 relative'>
+                <div className="w-full shadow-md rounded-lg gap-4 flex flex-col">
+                    <h2 className="text-xl font-bold mb-4 text-gray-200">
                         {loadingTranscript ? (
                             <div className="skeleton-loader w-3/4 h-6 bg-gray-200 rounded-md" />
                         ) : (
-                            <p className='text-4xl'>{title}</p>
+                            <p className='text-4xl leading-none'>{title}</p>
                         )}
                     </h2>
-                    {thumbnail && !loadingTranscript ? (
-                        <img src={thumbnail} alt={title} className="rounded-md mb-4 w-1/3" />
-                    ) : (
-                        <div className="skeleton-loader w-full h-48 bg-gray-200 rounded-md mb-4" />
-                    )}
-                    {summary && (
-                        <div className='p-4 bg-gray-100 rounded-md'>
-                            <h2 className='text-2xl font-bold text-gray-700'>Summary</h2>
-                           <ReactMarkdown>{summary}</ReactMarkdown>
-                            <p>{summary}</p>
-                        </div>
-                    )}
+
+                    <div className=''>
+                        {thumbnail && !loadingTranscript ? (
+                            <img src={thumbnail} alt={title} className="rounded-md w-full object-cover max-h-[150px]" />
+                        ) : (
+                            <div className="skeleton-loader w-full h-48 bg-gray-200 rounded-md mb-4" />
+                        )}
+                    </div>
+
+                    <div>
+                        {summary && (
+                            <div className='p-0 text-gray-200 rounded-md flex flex-col'>
+                                <h2 className='text-[2rem] italic font-bold text-gray-200'>Summary</h2>
+                                <ReactMarkdown>{summary}</ReactMarkdown>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            )}
-            <YoutubeSummaryLibrary/>
+                </div>
+             )}
+            
+            <div className='p-4'>
+                <YoutubeSummaryLibrary/>
+            </div>
         </div>
-    );
+        </>
+    )
 }
