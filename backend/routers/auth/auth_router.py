@@ -169,7 +169,7 @@ async def login_user(request: LoginRequest, response: Response):
             value=session_token,
             httponly=True,
             max_age=86400,
-            secure=True  # 1 day expiration
+            secure=True
         )
 
         return {"message": "Login successful", "user": {"email": user_data[0]["email"], "username": user_data[0]["username"]}}

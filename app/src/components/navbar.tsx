@@ -3,7 +3,7 @@ import { Dices, FileText, Home, Menu, PieChart, Youtube } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
-  const [toggleOptions, setToggleOptions] = useState<boolean>(true);
+  const [toggleOptions, setToggleOptions] = useState<boolean>(false);
 
   const menuItems = [
     {
@@ -35,17 +35,17 @@ export function Navbar() {
 
 
   return (
-    <div className="left-0 right-0 z-50 border-b bg-background flex justify-between flex-col sticky top-0">
-      <div className="flex w-full justify-between p-2 border-b">
+    <div className="bg-background flex justify-between flex-col">
+      <div className="flex w-full justify-between p-2">
         <div className="flex h-full items-center px-4">
-          <p className="italic font-bold text-2xl">AXON</p>
+          <p className="italic font-bold text-2xl">AXONN</p>
         </div>
         <div className="flex items-center px-4">
           <Menu onClick={() => setToggleOptions(!toggleOptions)} className="cursor-pointer" />
         </div>
       </div>
 
-      {toggleOptions && (
+      {/* {toggleOptions && (
         <div>
           <div className="flex bg-white">
             <div className="flex flex-col w-full sm:flex sm:flex-row">
@@ -65,7 +65,7 @@ export function Navbar() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
