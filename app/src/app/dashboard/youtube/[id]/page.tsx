@@ -48,19 +48,18 @@ export default function VideoDetailsPage() {
     return (
         <div className='flex max-h-screen relative'>
             {/* Video Content Section */}
-            <div className='overflow-y-scroll flex flex-col w-full'>
+            <div className='flex flex-col w-full'>
                 {/* Header Section */}
-                <div className='flex justify-between p-2 font-bold text-1xl items-center bg-[rgb(14,14,14)] text-white border-b sticky top-0 border-[rgb(31,31,31)] z-10'>
+                <div className='flex justify-between p-2 font-bold text-1xl items-center text-gray-600 sticky top-0 border-b z-10 bg-white'>
                     <p className='leading-none'>{videoDetails.title}</p>
-                    <div className='flex p-1 bg-[rgb(21,21,21)] leading-none rounded-2xl gap-2'>
-                        <div className='relative flex justify-end p-2 cursor-pointer hover:bg-gray-700 rounded-xl' onClick={() => setToggleChat(!toggleChat)}  >
+                    <div className='flex p-1 border leading-none rounded-2xl gap-2'>
+                        <div className='relative flex justify-end p-2 cursor-pointer hover:outline-1 hover:outline rounded-xl' onClick={() => setToggleChat(!toggleChat)}  >
                             <MessageCircle className='w-4'/>
                         </div>
                         <Link href={videourl} className='relative flex justify-end p-2 cursor-pointer hover:bg-gray-700 rounded-xl'>
                             <Link2 className='w-4'/>
                         </Link>
                     </div>
-                    
                 </div>
 
                 {/* Chat Overlay */}
@@ -73,7 +72,7 @@ export default function VideoDetailsPage() {
                             >
                                 ✖
                             </button>
-                            <ChatComponent videoId={videoDetails.id} userId={user_id} video_id={id} />
+                            <ChatComponent videoId={videoDetails.id} userId={user_id} video_id={id}/>
                         </div>
                     </div>
                 )}
@@ -89,7 +88,7 @@ export default function VideoDetailsPage() {
                 /> */}
 
                 {/* Video Summary */}
-                <div className='px-4 flex flex-col flex-1 h-full text-white relative'>
+                <div className='px-4 flex flex-col flex-1 h-full text-gray-600 relative'>
                     <p className='font-bold text-2xl'>Summary</p>
                     <ReactMarkdown>{videoDetails.summarized_text}</ReactMarkdown>
                 </div>

@@ -39,8 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <SessionProvider>
       <div className="flex w-full flex-1 h-full">
-        <div className="p-0 border-r border-[rgb(31,31,31)] w-[max-content] flex flex-col max-w-[max-content]">
-          <Link href="/" className="flex text-[.8rem] border-[rgb(31,31,31)] p-3 items-center justify-center aspect-square border-b">
+        <div className="p-0 border-r border w-[max-content] flex flex-col max-w-[max-content]">
+          <Link href="/" className="flex text-[.8rem] p-3 items-center justify-center aspect-square">
             <Image src="/axonn.svg" height={50} width={50} alt="AXONN Logo" className="w-4 aspect-square" />
             {/* <p className="text-white font-bold text-[.8rem]">AXONN</p> */}
           </Link>
@@ -52,10 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link
                   href={item.url}
                   className={`flex text-[.8rem] rounded-md p-2 transition-all ${
-                    isActive ? "bg-gradient-to-t from-transparent to-[rgb(61,61,61,.9)]" : "bg-transparent"
+                    isActive ? "border" : "border-none"
                   }`}
                 >
-                  <item.icon className="size-4 font-thin text-white" />
+                  <item.icon className="size-4 font-thin text-gray-600" />
                 </Link>
               </div>
             );

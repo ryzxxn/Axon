@@ -9,10 +9,26 @@
 }
 
 .bg{
-  background-image: url(../../public/grid.svg);
+  background-image: url(../../public/grid2.svg);
   width: auto;
   background-repeat: no-repeat;
-  background-size: contain;
+  background-size: cover;
+}
+
+.bur{
+  backdrop-filter: blur(100px);
+}
+
+.textshadow{
+  -webkit-text-stroke: 1px #000000;
+}
+
+.invershadow{
+  -webkit-text-stroke: 1px #000000;
+}
+
+.box{
+  box-shadow: 1rem 1rem rgba(255, 0, 0, 0.576);
 }
 
 .textcolor {
@@ -42,6 +58,10 @@
   100% {
     opacity: 1;
   }
+}
+
+body{
+  margin: 0px;
 }
 
 
@@ -191,3 +211,28 @@
   align-self: flex-start;
 }
 
+.ql-toolbar.ql-snow{
+  position: sticky;
+  top: 0px;
+  z-index: 10;
+  background-color: white;
+  box-shadow: 0rem 0rem 1rem rgb(0,0,0,.05);
+}
+
+.ql-editor{
+  min-height: 600px;
+  color: black;
+}
+
+.quill{
+  border: none;
+}
+
+/* Add this to your global CSS file or in the component file */
+.ProseMirror {
+  padding: 10px;
+  border-radius: 5px;
+  min-height: 90vh;
+  outline:none;
+  background-color: #1f48ff;
+}

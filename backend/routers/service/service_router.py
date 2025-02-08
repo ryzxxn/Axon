@@ -75,7 +75,7 @@ async def get_yt_transcript_api(request: SubtitleRequest):
             }
 
             # Add to vector DB (make sure this function works asynchronously)
-            await addYoutubeTranscriptToVector(request.user_id, video_id, video_summary)
+            await addYoutubeTranscriptToVector(request.user_id, video_id, result['transcript'])
 
             # Insert into Supabase table
             response = supabase.table('youtube_summary').insert(data).execute()
@@ -319,25 +319,50 @@ def get_user_notes(user_id: str) -> List[Note]:
 async def add_to_note(request: AddToNoteRequest):
     note_id = request.note_id
     text_to_add = request.text
-    user_id = request.user_id
 
-    logger.info(f'Adding text to note: {note_id} for user: {user_id}')
+    padded_text = f'{text_to_add}'
 
-    # Check if the note exists for the user
-    notes = get_user_notes(user_id)
-    note_ids = [note['id'] for note in notes]
-
-    if note_id not in note_ids:
-        logger.error(f'Note not found: {note_id}')
+    if Note is None:
         raise HTTPException(status_code=404, detail="Note not found")
 
-    # Append the text to the note's content
-    existing_content = notes[note_ids.index(note_id)]['note_content']
-    new_content = f"{existing_content}\n{text_to_add}"
+    supabase.table('notes').update({'note_content': padded_text}).eq('id', note_id).execute()
+    return {"saved"}
 
-    response = supabase.table('notes').update({'note_content': new_content}).eq('id', note_id).execute()
+@router.post("/append_to_note")
+async def add_to_note(request: AddToNoteRequest):
+    note_id = request.note_id
+    text_to_add = request.text
 
-@router.post("/get-user-notes", response_model=List[Note])
-async def get_user_notes_endpoint(request: GetUserNotesRequest):
+    padded_text = f'<br>{text_to_add}'
+    Note = supabase.table('notes').select({'note_content'}).eq('id', note_id).execute()
+
+    final_text = Note.data[0]['note_content'] + padded_text
+
+    if Note is None:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    supabase.table('notes').update({'note_content': final_text}).eq('id', note_id).execute()
+    return {"saved"}
+
+class Note(BaseModel):
+    id: str
+    user_id: str
+    title: str
+    note_content: str
+
+class GetNoteRequest(BaseModel):
+    user_id: str
+    note_id: str
+
+@router.post("/get-note", response_model=Note)
+async def get_note_endpoint(request: GetNoteRequest):
     user_id = request.user_id
-    return get_user_notes(user_id)
+    note_id = request.note_id
+    try:
+        response = supabase.table('notes').select('*').eq('id', note_id).eq('user_id', user_id).execute()
+        if response.data:
+            return response.data[0]
+        else:
+            raise HTTPException(status_code=404, detail="Note not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching note: {str(e)}")

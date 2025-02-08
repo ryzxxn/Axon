@@ -1,39 +1,39 @@
-from langchain_community.vectorstores import Chroma #type: ignore
-from langchain_community.embeddings import FastEmbedEmbeddings #type: ignore
-from langchain.chains import RetrievalQA #type: ignore
-from langchain.text_splitter import RecursiveCharacterTextSplitter #type: ignore
-from langchain_groq import ChatGroq #type: ignore
-from fastapi import APIRouter, File, HTTPException, Depends, UploadFile
-from io import BytesIO
-import fitz  # PyMuPDF for PDFs #type: ignore
-from docx import Document #type: ignore
-from dotenv import load_dotenv
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from pydantic import BaseModel
-from utils.logger import logger
+from dotenv import load_dotenv
+from langchain.text_splitter import RecursiveCharacterTextSplitter #type: ignore
+from langchain.embeddings import SentenceTransformerEmbeddings #type: ignore
+from langchain_groq import ChatGroq #type: ignore
 import chromadb #type: ignore
-from langchain_community.embeddings.sentence_transformer import ( SentenceTransformerEmbeddings ) #type: ignore
+import os
+import fitz  # PyMuPDF #type: ignore
+from docx import Document #type: ignore
+from io import BytesIO
+from utils.logger import logger
+import uuid
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
 router = APIRouter()
 
-# Initialize embeddings and vector store
-# embeddings = FastEmbedEmbeddings()
+# Initialize ChromaDB with persistence
 persistence_directory = "./chroma_db"
-chromaclient = chromadb.EphemeralClient()
-embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+chroma_client = chromadb.PersistentClient(path=persistence_directory)
+
 collection_name = "axon-video"
-vector_store = Chroma(embedding_function=embedding_function, persist_directory=persistence_directory, collection_name=collection_name)
+collection = chroma_client.get_or_create_collection(name=collection_name)
 
-# Initialize text splitter and retriever
+# Initialize embedding function
+embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+
+# Initialize text splitter
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
-retriever = vector_store.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.5})
 
+# Initialize LLM
 llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.0, max_retries=2)
-qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
 
-def clean_text(text):
+def clean_text(text: str) -> str:
     """Remove null characters from the text."""
     return text.replace('\x00', '')
 
@@ -53,37 +53,38 @@ class QueryVideoRequest(BaseModel):
 async def ingest_video(request: IngestVideoRequest):
     user_id = request.user_id
     video_id = request.video_id
-    transcript = request.transcript
-
-    # Log the input
-    logger.info(f"Ingesting video with user_id: {user_id}, video_id: {video_id}, transcript: {transcript}")
-
-    # Clean the text
-    text = clean_text(transcript)
+    transcript = clean_text(request.transcript)
 
     # Split text into chunks
-    chunks = text_splitter.split_text(text)
+    chunks = text_splitter.split_text(transcript)
 
-    # Embed and store chunks in the vector store
-    for chunk in chunks:
-        vector_store.add_texts([chunk], metadatas=[{"user_id": user_id, "video_id": video_id}])
+    # Generate embeddings
+    embeddings = embedding_function.embed_documents(chunks)
 
-    # Persist the vector store to the directory
-    vector_store.persist()
+    # Generate unique IDs
+    ids = [str(uuid.uuid4()) for _ in chunks]
+
+    # Store in ChromaDB
+    collection.upsert(
+        documents=chunks,
+        metadatas=[{"user_id": user_id, "video_id": video_id} for _ in chunks],
+        ids=ids,
+        embeddings=embeddings
+    )
+
+    logger.info(f'Ingested {len(chunks)} document chunks for video {video_id}')
     return {"status": "success"}
 
 @router.post("/ingestFile")
 async def ingest_file(file: UploadFile = File(...), request: IngestFileRequest = Depends()):
     user_id = request.user_id
 
-    # Validate that a file has been uploaded
+    # Validate uploaded file
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded.")
 
-    # Get file type
-    content_type = file.content_type
-
     # Extract content based on file type
+    content_type = file.content_type
     try:
         if content_type == "text/plain":
             content = await file.read()
@@ -97,18 +98,24 @@ async def ingest_file(file: UploadFile = File(...), request: IngestFileRequest =
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 
-    # Clean the text
     text = clean_text(text)
 
     # Split text into chunks
     chunks = text_splitter.split_text(text)
 
-    # Embed and store chunks in the vector store
-    for chunk in chunks:
-        vector_store.add_texts([chunk], metadatas=[{"user_id": user_id}])
+    # Generate embeddings
+    embeddings = embedding_function.embed_documents(chunks)
 
-    # Persist the vector store to the directory
-    vector_store.persist()
+    # Generate unique IDs
+    ids = [str(uuid.uuid4()) for _ in chunks]
+
+    # Store in ChromaDB
+    collection.upsert(
+        documents=chunks,
+        metadatas=[{"user_id": user_id} for _ in chunks],
+        ids=ids,
+        embeddings=embeddings
+    )
 
     return {"file_name": file.filename, "content": text}
 
@@ -116,9 +123,7 @@ def extract_pdf(file: UploadFile) -> str:
     """Extract text from a PDF file using PyMuPDF."""
     pdf_data = file.file.read()
     pdf_document = fitz.open(stream=pdf_data, filetype="pdf")
-    text = ""
-    for page in pdf_document:
-        text += page.get_text()
+    text = "\n".join([page.get_text() for page in pdf_document])
     pdf_document.close()
     if not text:
         raise HTTPException(status_code=500, detail="Error extracting text from PDF.")
@@ -128,32 +133,48 @@ def extract_docx(file: UploadFile) -> str:
     """Extract text from a DOCX file using python-docx."""
     doc_data = BytesIO(file.file.read())
     document = Document(doc_data)
-    text = "\n".join([para.text for para in document.paragraphs])
-    return text
+    return "\n".join([para.text for para in document.paragraphs])
 
 @router.post("/queryVideo")
 async def query_video(request: QueryVideoRequest):
     video_id = request.video_id
     query = request.query
 
-    # Retrieve relevant documents for the user
-    docs = vector_store.similarity_search(query)
+    # Embed query
+    embedded_query = embedding_function.embed_query(query)
 
-    # return docs
-    prompt= "Write a higly-detailed response that only includes all information information:"
+    # Retrieve documents from ChromaDB
+    results = collection.query(
+        query_embeddings=[embedded_query],
+        n_results=20,
+        where={"video_id": video_id},
+    )
 
-    logger.info(f'{docs}')
+    logger.info(results)
 
-    if docs is None:
-        return {'response': "I don't know."}
-    else:
-        content = " ".join([doc.page_content for doc in docs])
+    if not results["documents"]:
+        return {"response": "No relevant documents found."}
 
-        # Generate response using the QA chain
-        response = qa_chain.invoke(prompt+content)
-        if response:
-            return {"response": response}
+    # Concatenate retrieved documents
+    context = " ".join(results["documents"][0])
 
-        # Handle cases where the QA chain returns an empty response
-        if not response or response.strip() == "":
-            return {"response": "No data available."}
+    logger.info(f'{context}')
+
+    # Generate response using the LLM
+    prompt = f"""You are an AI designed to analyze video content and provide accurate answers based on the given context.  
+Carefully examine the following video transcript and generate a precise, well-structured response in markdown format.  
+
+### Video Context:  
+{context}  
+
+### Question:  
+{query}  
+
+#### Instructions:  
+- Provide a clear, concise, and informative response based on the given context.  
+- always return the response markDown format 
+- If the question is out of scope or the context does not provide sufficient information, respond appropriately by stating that the necessary details are not available in the provided video context.
+"""
+    response = llm.invoke(prompt)
+
+    return {"response": response}

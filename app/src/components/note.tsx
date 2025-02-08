@@ -1,208 +1,100 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Plus, Upload, Folder as FolderIcon } from "lucide-react"
-import axiosInstance from "@/app/utils/axiosInstance"
-import { useSessionContext } from "./sessionprovider"
+import React, { useEffect, useState } from 'react';
+import axiosInstance from '@/app/utils/axiosInstance';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 
-export interface Folder {
-  id: string
-  name: string
-  notes: Note[]
-}
-
-export interface Note {
-  id: string
-  title: string
-  content: string
-  createdAt: Date
-}
-
-export function NotesContainer() {
-  const [folders, setFolders] = useState<Folder[]>([])
-  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null)
-  const [newFolderName, setNewFolderName] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [newNoteTitle, setNewNoteTitle] = useState("")
-  const [newNoteContent, setNewNoteContent] = useState("")
-  const [userId, setUserId] = useState<string | null>(null)
-
-  const { userData } = useSessionContext()
+const Notes = ({ userId }: any) => {
+  const [notes, setNotes] = useState<any>([]);
+  const [newNoteTitle, setNewNoteTitle] = useState('');
+  const [newNoteContent, setNewNoteContent] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    if (userData) {
-      setUserId(userData.id)
-    }
-  }, [userData])
-
-  useEffect(() => {
-    if (userId) {
-      fetchFolders()
-    }
-  }, [userId])
-
-  const fetchFolders = async () => {
-    try {
-      const response = await axiosInstance.get(`/api/get-folders/?user_id=${userId}`)
-      setFolders(response.data.data)
-    } catch (error) {
-      console.error("Error fetching folders:", error)
-    }
-  }
-
-  const createFolder = async () => {
-    if (newFolderName.trim() === "") return
-    try {
-      await axiosInstance.post("/api/create-folder/", {
-        name: newFolderName,
-        user_id: userId,
-      })
-      fetchFolders()
-      setNewFolderName("")
-      setIsDialogOpen(false)
-    } catch (error) {
-      console.error("Error creating folder:", error)
-    }
-  }
-
-  const addNoteToFolder = (folderId: string, note: Note) => {
-    setFolders(
-      folders.map((folder) => {
-        if (folder.id === folderId) {
-          return {
-            ...folder,
-            notes: [...folder.notes, note],
-          }
+    const fetchNotes = async () => {
+      try {
+        if (userId) {
+          const response = await axiosInstance.get(`/api/get-user-notes/${userId}`);
+          setNotes(response.data);
         }
-        return folder
-      }),
-    )
-  }
+      } catch (error) {
+        console.error('Error fetching notes:', error);
+      }
+    };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file || !selectedFolder) return
+    fetchNotes();
+  }, [userId]);
 
-    setIsUploading(true)
-    const formData = new FormData()
-    formData.append("file", file)
-    formData.append("folderId", selectedFolder.id)
+  const handleAddNote = async () => {
+    if (newNoteTitle.trim() === '' || newNoteContent.trim() === '') return;
 
     try {
-      const response = await axiosInstance.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-
-      const newNote: Note = {
-        id: Date.now().toString(),
-        title: response.data.title,
-        content: response.data.content,
-        createdAt: new Date(response.data.createdAt),
-      }
-
-      addNoteToFolder(selectedFolder.id, newNote)
-      alert(`${file.name} has been added as a new note.`)
+      const response = await axiosInstance.post(`/api/add-user-note/${userId}`, {
+        title: newNoteTitle,
+        content: newNoteContent,
+      });
+      setNotes([...notes, response.data]);
+      setNewNoteTitle('');
+      setNewNoteContent('');
+      setIsModalOpen(false);
     } catch (error) {
-      console.error("Upload error:", error)
-      alert("There was an error uploading your file. Please try again.")
-    } finally {
-      setIsUploading(false)
+      console.error('Error adding note:', error);
     }
-  }
+  };
 
-  const handleAddNote = () => {
-    if (!selectedFolder || newNoteTitle.trim() === "" || newNoteContent.trim() === "") return
-
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: newNoteTitle,
-      content: newNoteContent,
-      createdAt: new Date(),
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      await axiosInstance.delete(`/api/delete-user-note/${noteId}`);
+      setNotes(notes.filter((note: any) => note.id !== noteId));
+    } catch (error) {
+      console.error('Error deleting note:', error);
     }
+  };
 
-    addNoteToFolder(selectedFolder.id, newNote)
-    setNewNoteTitle("")
-    setNewNoteContent("")
-  }
-
-  if (!userData) {
-    return <></>
-  }
+  const handleEditNote = (noteId: string) => {
+    router.push(`/dashboard/notes/editor/${noteId}`);
+  };
 
   return (
-    <div className="grid grid-cols-6 grid-rows-1 gap-0 h-full">
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Folders</h2>
-          <button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-        {isDialogOpen && (
-          <div>
-            <input
-              placeholder="Folder name"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-            />
-            <button onClick={createFolder}>Create</button>
+    <div className="text-white p-6 w-full">
+      <h1 className="text-2xl font-bold mb-4">Notes</h1>
+      
+      <Button onClick={() => setIsModalOpen(true)} className="mb-4">Create New Note</Button>
+      
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogTitle>Create New Note</DialogTitle>
+          <Input
+            value={newNoteTitle}
+            onChange={(e) => setNewNoteTitle(e.target.value)}
+            placeholder="Note Title"
+            className="mb-2"
+          />
+          <Button onClick={handleAddNote}>Save Note</Button>
+          <DialogClose asChild>
+            <Button variant="outline" className="ml-2">Cancel</Button>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
+      
+      <div className="space-y-4 grid grid-cols-4">
+        {notes.map((note: any) => (
+          <div key={note.id} className="p-4 bg-[rgb(14,14,14)] border border-[rgb(31,31,31)] rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold">{note.title}</h2>
+            <div className="mt-2 flex gap-2 text-[.8rem]">
+              <p onClick={() => handleEditNote(note.id)} className='border border-[rgb(31,31,31)] p-1 leading-none rounded-sm cursor-pointer'>Edit</p>
+              <p onClick={() => handleDeleteNote(note.id)} className='border border-[rgb(31,31,31)] p-1 leading-none rounded-sm cursor-pointer'>Delete</p>
+            </div>
           </div>
-        )}
-        <div className="p-4">
-          {folders.map((folder) => (
-            <div key={folder.id} className="flex items-center justify-between">
-              <div className="flex items-center">
-                <FolderIcon className="h-4 w-4 mr-2" />
-                <span onClick={() => setSelectedFolder(folder)}>{folder.name}</span>
-              </div>
-            </div>
-          ))}
-          {selectedFolder && (
-            <div className="mt-4">
-              <input type="file" accept=".pdf,.docx" onChange={handleFileUpload} disabled={isUploading} />
-              <button className="w-full mt-2" disabled={isUploading}>
-                <Upload className="h-4 w-4 mr-2" />
-                {isUploading ? "Uploading..." : "Upload File"}
-              </button>
-              <div className="mt-4">
-                <input
-                  placeholder="Note title"
-                  value={newNoteTitle}
-                  onChange={(e) => setNewNoteTitle(e.target.value)}
-                />
-                <textarea
-                  placeholder="Note content"
-                  value={newNoteContent}
-                  onChange={(e) => setNewNoteContent(e.target.value)}
-                  className="w-full mt-2"
-                />
-                <button onClick={handleAddNote} className="w-full mt-2">
-                  Add Note
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="p-4 w-full grid col-span-5">
-        <div className="border rounded-lg p-4">
-          {selectedFolder && (
-            <div>
-              <h3 className="font-semibold">Notes in {selectedFolder.name}</h3>
-              {selectedFolder.notes.map((note) => (
-                <div key={note.id} className="border p-2 mt-2">
-                  <h4 className="font-semibold">{note.title}</h4>
-                  <p>{note.content}</p>
-                  <small>{note.createdAt.toLocaleString()}</small>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        ))}
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default Notes;
