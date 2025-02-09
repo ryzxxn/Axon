@@ -8,9 +8,11 @@ interface ChatProps {
   userId: string;
   videoId: string;
   video_id: string;
+  toggleChat: boolean;
+  setToggleChat: (toggle: boolean) => void;
 }
 
-const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }: ChatProps) => {
+const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleChat, setToggleChat }: ChatProps) => {
   const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
@@ -32,8 +34,11 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }: ChatP
         const response = await axiosInstance.post('/api/initialize_chat', { user_id: userId, video_id: videoId });
         if (response.data && response.data.chat_id) {
           setChatId(response.data.chat_id);
-          fetchChatHistory(response.data.chat_id);
+          await fetchChatHistory(response.data.chat_id);
           setIsInitialized(true);
+        } else {
+          console.error('Chat initialization failed: No chat_id in response');
+          toast.error("Chat initialization failed");
         }
       } catch (error) {
         console.error('Failed to initialize chat:', error);
@@ -66,13 +71,25 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }: ChatP
     fetchUserNotes();
   }, [userId]);
 
+  useEffect(() => {
+    // Attach event listeners for text selection
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      // Clean up event listeners on component unmount
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   const addToNote = async (note_id: string, text_to_add: string) => {
     try {
       await axiosInstance.post('/api/append_to_note', { note_id, text: text_to_add, user_id: userId });
       console.log('Text added to note:', note_id);
       toast.success('Text added to note');
-      setShowNotesPopup(!showNotesPopup)
-      setShowToolbar(!showToolbar)
+      setShowNotesPopup(false);
+      setShowToolbar(false);
     } catch (error) {
       console.error('Failed to add text to note:', error);
       toast.error("Failed to add text to note");
@@ -132,7 +149,6 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }: ChatP
     if (selectedNoteId && selectedText) {
       addToNote(selectedNoteId, selectedText);
       setSelectedText(''); // Clear selected text after adding to note
-      setShowAddNotePopup(!showNotesPopup)
     }
   };
 
@@ -162,17 +178,21 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }: ChatP
       });
       setShowToolbar(true);
       setSelectedText(selection.toString()); // Set selected text
+      console.log('Text selected:', selection.toString());
     } else {
       setShowToolbar(false);
       setSelectedText(''); // Clear selected text if no selection
+      console.log('No text selected');
     }
   };
 
   const handleMouseUp = () => {
+    console.log('Mouse up event triggered');
     handleSelection();
   };
 
   const handleTouchEnd = () => {
+    console.log('Touch end event triggered');
     handleSelection();
   };
 
@@ -201,74 +221,131 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }: ChatP
   };
 
   return (
-    <div
-      className="w-full p-0 flex justify-between bottom-0 flex-1 bg-white border-gray-400 min-w-full rounded-lg relative"
-      onMouseUp={handleMouseUp}
-      onTouchEnd={handleTouchEnd}
-    >
-      <button
-        className="absolute top-2 right-2 text-white hover:text-gray-300"
-        onClick={clearAllStates}
-      >
-        <X className="w-4 h-4" />
-      </button>
-      {showNotesPopup && (
-        <div className='flex flex-col h-full sm:flex-row sm:flex md:flex-rowmd:flex lg:flex-row lg:flex'>
-        <div className="w-full p-0 text-white text-sm">
-          <div className="space-y-2 p-2">
-            <button
-              className="px-4 py-2 bg-[rgb(31,31,31)] rounded-lg mr-2 whitespace-nowrap text-[.8rem] flex items-center gap-1 w-full"
-              onClick={() => setShowAddNotePopup(true)}
+    <div className="w-full h-full flex flex-col bg-white border border-gray-200 rounded-lg shadow-md relative justify-between">
+      <div className="flex justify-between items-center p-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800">Chat</h2>
+        <button
+          className="text-gray-500 hover:text-gray-700"
+          onClick={() => setToggleChat(false)}
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 max-h-[80vh]" ref={chatBoxRef}>
+        {messages.length > 0 ? (
+          messages.map((msg: any, index: number) => (
+            <div
+              key={index}
+              className={`flex items-start mb-4 ${msg.sender === userId ? 'justify-end' : 'justify-start'}`}
             >
-              <Plus className='w-4'/> Create Note
-            </button>
-          </div>
-          <div className='border-b'></div>
-          <div className='flex gap-1 p-1 w-full flex-col text-gray-600'>
-            <p>Notes</p>
-            {notes.map((note) => (
-              <div
-                key={note.id}
-                className={`cursor-pointer p-2 text-gray-600 ${selectedNoteId === note.id ? 'bg-gray-300' : 'hover:bg-gray-300'} rounded-lg flex items-center gap-2 w-full select-none border`}
-                onClick={() => {
-                  if (selectedNoteId === note.id) {
-                    handleAddToNote();
-                  } else {
-                    setSelectedNoteId(note.id);
-                    toast('Click again to add text to note');
-                  }
-                }}
-              >
-                <File className='w-4 hidden sm:flex'/>
-                <p className='flex text-[.7rem] leading-none'>{note.title}</p>
+              <div className={`rounded-lg px-4 py-2 ${msg.sender === userId ? 'bg-gray-700 text-white w-3/4' : 'bg-gray-200 text-gray-800'}`}>
+                <ReactMarkdown className='text-sm'>{msg.message}</ReactMarkdown>
+                <span className="block text-xs text-gray-500 mt-1">{new Date(msg.timestamp).toLocaleTimeString()}</span>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          ))
+        ) : (
+          <Loader className="text-gray-400 w-10 h-10 mx-auto" />
+        )}
+      </div>
+      <div className="flex items-center p-4 border-t border-gray-200">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type your message..."
+          className="flex-1 border border-gray-300 rounded-lg px-4 py-2 mr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={!isInitialized}
+        />
+        <button
+          onClick={handleSendMessage}
+          disabled={newMessage.trim() === '' || !isInitialized}
+          className="bg-blue-500 text-white rounded-lg px-4 py-2 disabled:opacity-50"
+        >
+          <SendHorizonal className="w-5 h-5" />
+        </button>
+      </div>
+      {showToolbar && (
+        <div
+          className="bg-white border border-gray-200 shadow-md rounded-lg px-3 py-2 flex gap-3 absolute"
+          style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
+        >
+          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={copySelectedText}>
+            <Copy className="w-5 h-5" />
+          </button>
+          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={() => setShowNotesPopup(true)}>
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
       )}
-      
-
+      {showNotesPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Notes</h2>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setShowNotesPopup(false)}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <button
+                className="w-full bg-gray-800 text-white rounded-lg py-2 px-4 flex items-center justify-center"
+                onClick={() => setShowAddNotePopup(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" /> Create Note
+              </button>
+              {notes.map((note) => (
+                <div
+                  key={note.id}
+                  className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-100`}
+                  onClick={() => {
+                    setSelectedNoteId(note.id);
+                    setShowNotesPopup(false);
+                    toast('Note selected. Click "Add to Note" to add text.');
+                  }}
+                >
+                  <div className="flex items-center">
+                    <File className="w-4 h-4 mr-2" />
+                    <p className="text-sm text-gray-800">{note.title}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       {showAddNotePopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50">
-          <div className="p-4 rounded-lg text-gray-600 flex flex-col gap-3 w-2/3 items-start border bg-white">
-            <h2 className="text-lg font-semibold">Create Note</h2>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Create Note</h2>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setShowAddNotePopup(false)}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <input
               type="text"
               placeholder="Note Title"
               value={newNoteTitle}
               onChange={(e) => setNewNoteTitle(e.target.value)}
-              className="w-full p-2 border rounded-lg bg-transparent text-sm outline-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <div>
+            <div className="flex justify-end space-x-2">
               <button
-                className="px-4 py-2 bg-[rgb(28,28,28)] text-white rounded-lg"
+                className="bg-blue-500 text-white rounded-lg px-4 py-2"
                 onClick={createNote}
               >
                 Save
               </button>
               <button
-                className="px-4 py-2 bg-[rgb(28,28,28)]  text-white border rounded-lg ml-2"
+                className="bg-gray-300 text-gray-800 rounded-lg px-4 py-2"
                 onClick={() => setShowAddNotePopup(false)}
               >
                 Cancel
@@ -277,60 +354,16 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id }: ChatP
           </div>
         </div>
       )}
-
-      <div className="flex flex-1 gap-3 flex-col pb-4 max-h-[80vh] justify-between p-3 w-full border-l">
-        <div
-          className="flex flex-col gap-2 max-h-screen overflow-y-scroll p-4 w-full overflow-x-hidden"
-          ref={chatBoxRef}
-        >
-          {messages ? (
-            <div className="flex flex-col w-full gap-5 text-gray-600">
-              {messages.map((msg: any, index: number) => (
-                <div
-                  key={index}
-                  className={`${msg.sender === userId ? 'sent text-gray-200 bg-gray-200' : 'received text-gray-600'}`}
-                >
-                  <div className={msg.sender === "axon" ? "text-sm px-0" : "bg-transparent text-sm rounded-r-md border-l-[2px] border-gray-300 px-3 p-2"}>
-                    <div>
-                      <ReactMarkdown className='text-gray-600'>{msg.message}</ReactMarkdown>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Loader className="text-black w-20" />
-          )}
-        </div>
-        <div className="w-full flex justify-between gap-2 border rounded-xl p-0 h-[max-content]">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            className="w-full outline-none text-[.7rem] bg-transparent px-2 text-gray-600"
-            disabled={!isInitialized}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={newMessage.trim() === '' || !isInitialized}
-            className="p-2 disabled:text-gray-500 text-black bg-white px-4 border-none outline-none rounded-r-lg"
-          >
-            <SendHorizonal className="w-4" />
-          </button>
-        </div>
-      </div>
       {showToolbar && (
         <div
-          className="bg-white absolute px-3 py-2 flex gap-3 rounded-xl font-thin bubble-expand-animate outline outline-1 outline-gray-300"
+          className="bg-white border border-gray-200 shadow-md rounded-lg px-3 py-2 flex gap-3 absolute"
           style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
         >
-          <button className="hover:bg-slate-200 p-1 aspect-square rounded-lg" onClick={copySelectedText}>
-            <Copy className="w-4" />
+          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={copySelectedText}>
+            <Copy className="w-5 h-5" />
           </button>
-          <button className="hover:bg-slate-200 p-1 aspect-square rounded-lg" onClick={() => setShowNotesPopup(true)}>
-            <Plus className="w-4" />
+          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={handleAddToNote}>
+            <Plus className="w-5 h-5" />
           </button>
         </div>
       )}

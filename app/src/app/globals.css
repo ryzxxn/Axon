@@ -236,3 +236,16 @@ body{
   outline:none;
   background-color: #1f48ff;
 }
+
+code{
+  word-wrap: break-word;
+}
+pre{
+  word-wrap: break-word;
+  text-wrap: wrap;
+  color: #e0e0e0;
+  padding: .7rem;
+  border-radius: .7rem;
+  margin: 1rem 0rem;
+  background-color: #111111;
+}

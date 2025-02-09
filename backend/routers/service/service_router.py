@@ -194,7 +194,7 @@ async def initialize_chat(request: ChatInitRequest):
             "created_at": datetime.utcnow().isoformat()
         }
         response = supabase.table("chat").insert(chat_data).execute()
-        if response.data:
+        if not response.data:
             raise HTTPException(status_code=500, detail="Failed to initialize chat")
 
     return {"chat_id": chat_id}
@@ -273,14 +273,13 @@ class Note(BaseModel):
     id: UUID
     title: str
     user_id: UUID
-    note_content: str
     created_at: datetime
 
 @router.get("/get-user-notes/{user_id}", response_model=List[Note])
 async def get_user_notes(user_id: UUID):
     try:
         # Query the notes table for notes associated with the given user_id
-        response = supabase.table('notes').select('*').eq('user_id', str(user_id)).execute()
+        response = supabase.table('notes').select('id, created_at, title, user_id').eq('user_id', str(user_id)).execute()
 
         if response is None:
             raise HTTPException(status_code=500, detail="Failed to fetch notes")
