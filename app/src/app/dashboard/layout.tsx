@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     {
       title: "Summary",
       icon: PieChart,
-      url: "#",
+      url: "/dashboard/stats",
     },
   ];
 

@@ -161,8 +161,8 @@ async def query_video(request: QueryVideoRequest):
     logger.info(f'{context}')
 
     # Generate response using the LLM
-    prompt = f"""You are an AI designed to analyze video content and provide accurate answers based on the given context.  
-Carefully examine the following video transcript and generate a precise, well-structured response in markdown format.  
+    prompt = f"""You are an AI learning assistant called Axon. who provide accurate answers based on the given context.  
+Carefully examine the following text and generate a precise, well-structured response in markdown format.  
 
 ### Video Context:  
 {context}  
@@ -172,7 +172,6 @@ Carefully examine the following video transcript and generate a precise, well-st
 
 #### Instructions:  
 - Provide a clear, concise, and informative response based on the given context.  
-- always return the response markDown format 
 - If the question is out of scope or the context does not provide sufficient information, respond appropriately by stating that the necessary details are not available in the provided video context.
 """
     response = llm.invoke(prompt)

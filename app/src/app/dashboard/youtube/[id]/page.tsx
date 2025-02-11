@@ -54,11 +54,11 @@ export default function VideoDetailsPage() {
     const videourl = "https://www.youtube.com/watch?v=" + id;
 
     return (
-        <div className='flex max-h-screen relative'>
+        <div className='flex flex-col max-h-screen relative'>
             {/* Video Content Section */}
-            <div className='flex flex-col'>
+            <div className='flex flex-col flex-1'>
                 {/* Header Section */}
-                <div className='flex justify-between p-2 font-bold text-1xl items-center text-gray-600 sticky top-0 border-b z-10 bg-white'>
+                <div className='flex justify-between p-4 font-bold text-xl items-center text-gray-600 sticky top-0 border-b z-10 bg-white'>
                     <p className='leading-none'>{videoDetails.title}</p>
                     <div className='flex p-1 border leading-none rounded-2xl gap-2'>
                         <div
@@ -75,8 +75,8 @@ export default function VideoDetailsPage() {
 
                 {/* Chat Section */}
                 {toggleChat && (
-                    <div className='flex-1 w-fit px-[5vw] md:px-[10vw] fixed max-h-screen min-h-screen bg-black/70 top-0 z-50 overflow-hidden md:w-full lg:w-full'>
-                        <div className='max-h-[80vh] flex flex-1'>
+                    <div className='fixed inset-0 flex items-center justify-center bg-black/70 z-10'>
+                        <div className='min-w-[80vw] max-w-md p-4 rounded-lg shadow-lg relative'>
                             <ChatComponent
                                 videoId={videoDetails.id}
                                 userId={user_id}
@@ -89,7 +89,7 @@ export default function VideoDetailsPage() {
                 )}
 
                 {/* Video Summary */}
-                <div className='px-4 flex flex-col flex-1 h-full text-gray-600 relative'>
+                <div className='px-4 py-4 flex flex-col flex-1 h-full text-gray-600 relative'>
                     <p className='font-bold text-2xl'>Summary</p>
                     <ReactMarkdown>{videoDetails.summarized_text}</ReactMarkdown>
                 </div>

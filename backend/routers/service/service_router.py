@@ -365,3 +365,26 @@ async def get_note_endpoint(request: GetNoteRequest):
             raise HTTPException(status_code=404, detail="Note not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching note: {str(e)}")
+
+class DeleteNoteRequest(BaseModel):
+    user_id: str
+    note_id: str 
+
+@router.post("/delete-user-note")
+async def delete_note_endpoint(request: DeleteNoteRequest):
+    user_id = request.user_id
+    note_id = request.note_id
+    try:
+        # Check if the note exists and belongs to the user
+        response = supabase.table('notes').select('*').eq('id', note_id).eq('user_id', user_id).execute()
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Note not found")
+
+        # Delete the note
+        delete_response = supabase.table('notes').delete().eq('id', note_id).eq('user_id', user_id).execute()
+        if delete_response.data:
+            return {"detail": "Note deleted successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Error deleting note")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting note: {str(e)}")

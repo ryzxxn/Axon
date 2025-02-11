@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { PenSquare, PlusIcon, Trash2 } from 'lucide-react';
+import { PenSquare } from 'lucide-react';
 
-const Notes = ({ userId }: any) => {
+const Dash_Notes = ({ userId }: {userId:string}) => {
   const [notes, setNotes] = useState<any>([]);
   const [filteredNotes, setFilteredNotes] = useState<any>([]);
   const [newNoteTitle, setNewNoteTitle] = useState('');
@@ -73,18 +73,6 @@ const Notes = ({ userId }: any) => {
     }
   };
 
-  const handleDeleteNote = async (noteId: string) => {
-    try {
-      await axiosInstance.post(`/api/delete-user-note`,{user_id:userId, note_id:noteId});
-      setNotes(notes.filter((note: any) => note.id !== noteId));
-      setFilteredNotes(notes.filter((note: any) => note.id !== noteId)); // Update filtered notes
-      toast.success('Note deleted successfully');
-    } catch (error) {
-      console.error('Error deleting note:', error);
-      toast.error('Failed to delete note');
-    }
-  };
-
   const handleEditNote = (noteId: string) => {
     router.push(`/dashboard/notes/editor/${noteId}`);
   };
@@ -99,12 +87,8 @@ const Notes = ({ userId }: any) => {
 
   return (
     <div className='flex flex-col w-full'>
-      <div className='flex w-full justify-between items-center border-b p-3'>
-        <h1 className="text-2xl font-bold text-gray-600">Notes</h1>
-        <Button onClick={() => setIsModalOpen(true)} className=""><PlusIcon className='w-5 h-2 aspect-square'/></Button>
-      </div>
-
-      <div className="p-6">
+        <h1 className="text-2xl font-bold text-gray-600">Recent Notes</h1>
+      <div className="py-6">
         <Input
           type="text"
           value={searchQuery}
@@ -114,7 +98,7 @@ const Notes = ({ userId }: any) => {
         />
       </div>
 
-      <div className="text-gray-600 px-6 w-full">
+      <div className="text-gray-600 pb-6 w-full">
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent>
             <DialogTitle>Create New Note</DialogTitle>
@@ -138,7 +122,6 @@ const Notes = ({ userId }: any) => {
               <p className="text-sm text-gray-500">{formatDate(note.created_at)}</p>
               <div className="flex gap-2 text-[.8rem] justify-end items-center">
                 <p onClick={() => handleEditNote(note.id)} className='border p-1 leading-none rounded-sm cursor-pointer'><PenSquare className='w-4 aspect-square h-4'/></p>
-                <p onClick={() => handleDeleteNote(note.id)} className='border p-1 leading-none rounded-sm cursor-pointer'><Trash2 className='w-4 aspect-square h-4'/></p>
               </div>
             </div>
           ))}
@@ -148,4 +131,4 @@ const Notes = ({ userId }: any) => {
   );
 };
 
-export default Notes;
+export default Dash_Notes;

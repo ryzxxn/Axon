@@ -1,6 +1,6 @@
 "use client"
 
-import { Brain, BookOpen, Sparkles, Lightbulb, GraduationCap, WavesLadderIcon, UserRoundCogIcon, BookUser } from "lucide-react"
+import { Brain, BookOpen, Sparkles, Lightbulb, GraduationCap, WavesLadderIcon, UserRoundCogIcon, BookUser, LogIn } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
 import { FeatureCard } from "@/components/feature-card"
@@ -23,12 +23,17 @@ export default function LandingPage() {
     >
       <div className="fixed w-full bg-white/80 backdrop-blur-sm z-50 border-b">
         <div className="p-3 flex items-center justify-between w-full text-gray-700 font-mono">
-          <p className="">
+          <p className="italic font-bold text-[1.2rem]">
             AXONN
           </p>
-          <Link href={'/login'}>
-            <BookUser/>
-          </Link>
+          <div className="flex gap-4">
+            <Link href={'/signup'}>
+              signup
+            </Link>
+            <Link href={'/login'}>
+              login
+            </Link>
+          </div>
         </div>
       </div>
 

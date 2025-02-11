@@ -5,13 +5,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Circle, Youtube } from 'lucide-react';
 
-export default function YoutubeSummaryLibrary() {
+export default function YoutubeRecentVideosLibrary() {
     const { userData, loading } = useSessionContext();
     const [videos, setVideos] = useState<any>([]);
     const [isLoadingVideos, setIsLoadingVideos] = useState(true);
+    const [hasFetchedVideos, setHasFetchedVideos] = useState(false);
 
     useEffect(() => {
-        if (userData && userData.id) {
+        if (userData && userData.id && !hasFetchedVideos) {
             // Fetch previously scanned videos
             axiosInstance
                 .get(`/api/videos?user_id=${userData.id}`)
@@ -23,9 +24,10 @@ export default function YoutubeSummaryLibrary() {
                 })
                 .finally(() => {
                     setIsLoadingVideos(false);
+                    setHasFetchedVideos(true);
                 });
         }
-    }, []);
+    }, [hasFetchedVideos]);
 
     if (loading) {
         return <></>;
@@ -35,23 +37,26 @@ export default function YoutubeSummaryLibrary() {
         return <p>Please log in to use this feature.</p>;
     }
 
+    // Determine the number of videos to display based on the grid columns
+    const numberOfColumns = 6; // Adjust this based on your grid layout
+    const recentVideos = videos.slice(0, numberOfColumns);
+
     return (
         <div>
             <div className='flex flex-col w-full'>
                 <div className='flex items-center justify-start leading-none gap-2 w-full text-gray-600 text-[1.4rem]'>
-                    <h1 className="font-bold leading-none text-[1.4rem]">Your Videos:</h1>
-                    <p className='font-bold'>{videos.length}</p>
+                    <h1 className="font-bold leading-none text-[1.4rem]">Recent Videos</h1>
                 </div>
             </div>
-            
+
             {isLoadingVideos ? (
                 <div className="flex w-full justify-center items-center py-[5rem]">
                     <Circle className='text-white w-10'/>
                 </div>
-            ) : videos.length > 0 ? (
+            ) : recentVideos.length > 0 ? (
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 place-content-between cursor-pointer p-0 py-4">
-                        {videos.map((video: any) => (
+                        {recentVideos.map((video: any) => (
                             <Link
                                 href={`/dashboard/youtube/${video.video_id}`}
                                 key={video.video_id}

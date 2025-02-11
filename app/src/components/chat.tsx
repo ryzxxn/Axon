@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '@/app/utils/axiosInstance';
-import { Copy, File, Loader, Plus, SendHorizonal, X } from 'lucide-react';
+import { CopyIcon, File, Loader, PlusIcon, SendHorizonal, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
+import { marked } from 'marked';
 
 interface ChatProps {
   userId: string;
@@ -16,8 +17,6 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
   const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
-  const [showToolbar, setShowToolbar] = useState<boolean>(false);
-  const [toolbarPosition, setToolbarPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
   const [showNotesPopup, setShowNotesPopup] = useState<boolean>(false);
   const [notes, setNotes] = useState<{ id: string, title: string }[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
@@ -25,7 +24,7 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
   const [showAddNotePopup, setShowAddNotePopup] = useState<boolean>(false);
   const [newNoteTitle, setNewNoteTitle] = useState<string>('');
   const [newNoteContent, setNewNoteContent] = useState<string>('');
-  const [selectedText, setSelectedText] = useState<string>('');
+  const [messageToAdd, setMessageToAdd] = useState<string>('');
   const chatBoxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,25 +70,22 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
     fetchUserNotes();
   }, [userId]);
 
-  useEffect(() => {
-    // Attach event listeners for text selection
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      // Clean up event listeners on component unmount
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, []);
+  const convertMarkdownToHtml = (markdown: string): string => {
+    // Convert Markdown to HTML
+    const html:any = marked(markdown,{
+      gfm: true,
+      breaks: true,
+    });
+    return html;
+  };
 
   const addToNote = async (note_id: string, text_to_add: string) => {
     try {
-      await axiosInstance.post('/api/append_to_note', { note_id, text: text_to_add, user_id: userId });
+      const html_data = convertMarkdownToHtml(text_to_add)
+      await axiosInstance.post('/api/append_to_note', { note_id, text: html_data, user_id: userId });
       console.log('Text added to note:', note_id);
       toast.success('Text added to note');
       setShowNotesPopup(false);
-      setShowToolbar(false);
     } catch (error) {
       console.error('Failed to add text to note:', error);
       toast.error("Failed to add text to note");
@@ -145,11 +141,9 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
     }
   };
 
-  const handleAddToNote = () => {
-    if (selectedNoteId && selectedText) {
-      addToNote(selectedNoteId, selectedText);
-      setSelectedText(''); // Clear selected text after adding to note
-    }
+  const handleAddToNote = (message: string) => {
+    setMessageToAdd(message);
+    setShowNotesPopup(true);
   };
 
   const createNote = async () => {
@@ -167,57 +161,9 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
     }
   };
 
-  const handleSelection = () => {
-    const selection = window.getSelection();
-    if (selection && !selection.isCollapsed) {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      setToolbarPosition({
-        top: rect.top + window.scrollY - 10,
-        left: rect.left + window.scrollX + rect.width / 2,
-      });
-      setShowToolbar(true);
-      setSelectedText(selection.toString()); // Set selected text
-      console.log('Text selected:', selection.toString());
-    } else {
-      setShowToolbar(false);
-      setSelectedText(''); // Clear selected text if no selection
-      console.log('No text selected');
-    }
-  };
-
-  const handleMouseUp = () => {
-    console.log('Mouse up event triggered');
-    handleSelection();
-  };
-
-  const handleTouchEnd = () => {
-    console.log('Touch end event triggered');
-    handleSelection();
-  };
-
-  const copySelectedText = () => {
-    const selection = window.getSelection();
-    if (selection) {
-      document.execCommand('copy');
-      toast('Copied Text');
-    }
-  };
-
-  const clearAllStates = () => {
-    setChatId(null);
-    setMessages([]);
-    setNewMessage('');
-    setShowToolbar(false);
-    setToolbarPosition({ top: 0, left: 0 });
-    setShowNotesPopup(false);
-    setNotes([]);
-    setSelectedNoteId(null);
-    setIsInitialized(false);
-    setShowAddNotePopup(false);
-    setNewNoteTitle('');
-    setNewNoteContent('');
-    setSelectedText('');
+  const copySelectedText = (message: string) => {
+    navigator.clipboard.writeText(message);
+    toast('Copied Text');
   };
 
   return (
@@ -231,21 +177,31 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
           <X className="w-5 h-5" />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 max-h-[80vh]" ref={chatBoxRef}>
+      <div className="flex-1 overflow-y-auto p-0 max-h-[80vh]" ref={chatBoxRef}>
         {messages.length > 0 ? (
           messages.map((msg: any, index: number) => (
             <div
               key={index}
-              className={`flex items-start mb-4 ${msg.sender === userId ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-start p-4 ${msg.sender === userId ? 'justify-end' : 'justify-start'}`}
             >
               <div className={`rounded-lg px-4 py-2 ${msg.sender === userId ? 'bg-gray-700 text-white w-3/4' : 'bg-gray-200 text-gray-800'}`}>
-                <ReactMarkdown className='text-sm'>{msg.message}</ReactMarkdown>
-                <span className="block text-xs text-gray-500 mt-1">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                <div className='text-sm'>
+                  <ReactMarkdown>{msg.message}</ReactMarkdown>
+                </div>
+                <div className='flex flex-row-reverse justify-between'>
+                  {msg.sender != userId && (
+                    <div className='flex gap-2'>
+                      <CopyIcon className="w-4 h-4 cursor-pointer" onClick={() => copySelectedText(msg.message)} />
+                      <PlusIcon className="w-4 h-4 cursor-pointer" onClick={() => handleAddToNote(msg.message)} />
+                    </div>
+                  )}
+                  <span className="block text-xs text-gray-500 mt-1">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                </div>
               </div>
             </div>
           ))
         ) : (
-          <Loader className="text-gray-400 w-10 h-10 mx-auto" />
+          <></>
         )}
       </div>
       <div className="flex items-center p-4 border-t border-gray-200">
@@ -266,19 +222,6 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
           <SendHorizonal className="w-5 h-5" />
         </button>
       </div>
-      {showToolbar && (
-        <div
-          className="bg-white border border-gray-200 shadow-md rounded-lg px-3 py-2 flex gap-3 absolute"
-          style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
-        >
-          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={copySelectedText}>
-            <Copy className="w-5 h-5" />
-          </button>
-          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={() => setShowNotesPopup(true)}>
-            <Plus className="w-5 h-5" />
-          </button>
-        </div>
-      )}
       {showNotesPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
@@ -296,7 +239,7 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
                 className="w-full bg-gray-800 text-white rounded-lg py-2 px-4 flex items-center justify-center"
                 onClick={() => setShowAddNotePopup(true)}
               >
-                <Plus className="w-4 h-4 mr-2" /> Create Note
+                <PlusIcon className="w-4 h-4 mr-2" /> Create Note
               </button>
               {notes.map((note) => (
                 <div
@@ -304,8 +247,8 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
                   className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-100`}
                   onClick={() => {
                     setSelectedNoteId(note.id);
+                    addToNote(note.id, messageToAdd);
                     setShowNotesPopup(false);
-                    toast('Note selected. Click "Add to Note" to add text.');
                   }}
                 >
                   <div className="flex items-center">
@@ -352,19 +295,6 @@ const ChatComponent: React.FC<ChatProps> = ({ userId, videoId, video_id, toggleC
               </button>
             </div>
           </div>
-        </div>
-      )}
-      {showToolbar && (
-        <div
-          className="bg-white border border-gray-200 shadow-md rounded-lg px-3 py-2 flex gap-3 absolute"
-          style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
-        >
-          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={copySelectedText}>
-            <Copy className="w-5 h-5" />
-          </button>
-          <button className="hover:bg-gray-100 p-1 rounded-lg" onClick={handleAddToNote}>
-            <Plus className="w-5 h-5" />
-          </button>
         </div>
       )}
       <style jsx>{`
