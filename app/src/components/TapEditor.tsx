@@ -1,15 +1,7 @@
 'use client';
-import { useEditor, EditorContent } from "@tiptap/react";
+
+import { useEditor, EditorContent, FloatingMenu } from "@tiptap/react";
 import StarterKit from '@tiptap/starter-kit';
-import "./tiptap.css";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import Document from '@tiptap/extension-document';
 import Youtube from "@tiptap/extension-youtube";
 import Link from '@tiptap/extension-link';
@@ -17,7 +9,7 @@ import AutoJoiner from "tiptap-extension-auto-joiner";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import paragraph, { Paragraph } from '@tiptap/extension-paragraph';
+import Paragraph from '@tiptap/extension-paragraph';
 import { BubbleMenu } from '@tiptap/react';
 import axiosInstance from "@/app/utils/axiosInstance";
 import { Button } from './ui/button';
@@ -26,7 +18,7 @@ import Table from "@tiptap/extension-table";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
-import { ChevronDown, Link2, Image as ImageIcon, List, ListOrdered } from "lucide-react";
+import { ChevronDown, Link2, Image as ImageIcon, List, ListOrdered, RotateCcw, RotateCw } from "lucide-react";
 import { Popover } from "./ui/popover";
 import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
 import Heading from "@tiptap/extension-heading";
@@ -36,7 +28,15 @@ import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import { v4 as uuidv4 } from 'uuid';
 import debounce from 'lodash.debounce';
-import Text from '@tiptap/extension-text'
+import Text from '@tiptap/extension-text';
+import History from '@tiptap/extension-history';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import ListItem from '@tiptap/extension-list-item'; // Import ListItem
+import BulletList from '@tiptap/extension-bullet-list'; // Import BulletList
+import OrderedList from '@tiptap/extension-ordered-list'; // Import OrderedList
+import Bold from '@tiptap/extension-bold'; // Import Bold
+import Italic from '@tiptap/extension-italic'; // Import Italic
+import Strike from "@tiptap/extension-strike";
 
 const CustomDocument = Document.extend({
   content: "heading block",
@@ -56,22 +56,42 @@ const Tiptap = ({ user_id, note_id }: { user_id: string; note_id: string }) => {
         debouncedSave(content);
       }
     },
-    extensions: [Document,
-        Paragraph,
-        Text,
-        Heading
+    extensions: [
+      Document,
+      Paragraph,
+      Text,
+      Heading,
+      Link,
+      Underline,
+      Table,
+      TableCell,
+      TableHeader,
+      TableRow,
+      Image,
+      Youtube,
+      TaskList,
+      TaskItem,
+      ListItem, // Add ListItem
+      BulletList, // Add BulletList
+      OrderedList, // Add OrderedList
+      Bold, // Add Bold
+      Italic, // Add Italic
+      AutoJoiner,
+      GlobalDragHandle,
+      Dropcursor,
+      History,
+      Strike
     ],
     content: "",
     editorProps: {
       attributes: {
-        class:
-          " padding:16px focus:outline-none",
+        class: "padding:16px focus:outline-none",
       },
     },
   });
 
   const debouncedSave = useRef(
-    debounce((content:any) => {
+    debounce((content: any) => {
       axiosInstance
         .post(`/api/add_to_note`, {
           note_id,
@@ -117,7 +137,6 @@ const Tiptap = ({ user_id, note_id }: { user_id: string; note_id: string }) => {
       try {
         const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY as string;
         const url = 'https://api.imgbb.com/1/upload';
-
         const formData = new FormData();
         formData.append('key', apiKey);
         formData.append('image', file);
@@ -136,7 +155,6 @@ const Tiptap = ({ user_id, note_id }: { user_id: string; note_id: string }) => {
         const imageUrl = data.data.url;
 
         editor.chain().focus().setImage({ src: imageUrl }).run();
-
       } catch (error) {
         console.log(error);
       }
@@ -177,13 +195,9 @@ const Tiptap = ({ user_id, note_id }: { user_id: string; note_id: string }) => {
               type="button"
               className="flex w-min hover:bg-zinc-100 rounded items-center gap-1 md:px-2 px-1 py-1 text-xs md:text-sm whitespace-nowrap text-neutral-600 transition-colors"
             >
-              {editor.isActive("heading", { level: 2 }) && "Heading 1"}
-              {editor.isActive("heading", { level: 3 }) && "Heading 2"}
-              {editor.isActive("heading", { level: 4 }) && "Heading 3"}
-              {!editor.isActive("heading", { level: 2 }) &&
-                !editor.isActive("heading", { level: 3 }) &&
-                !editor.isActive("heading", { level: 4 }) &&
-                "Text"}
+              {editor.isActive("heading", { level: 1 }) && "Heading 1"}
+              {editor.isActive("heading", { level: 2 }) && "Heading 2"}
+              {editor.isActive("heading", { level: 3 }) && "Heading 3"}
               <ChevronDown className="w-4 h-4" />
             </button>
           </PopoverTrigger>
@@ -328,13 +342,6 @@ const Tiptap = ({ user_id, note_id }: { user_id: string; note_id: string }) => {
           </button>
           <button
             type="button"
-            onClick={handleImageUpload}
-            className="text-neutral-600 transition-colors grid place-items-center hover:bg-zinc-100 size-7 rounded"
-          >
-            <ImageIcon className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={`text-neutral-600 transition-colors grid place-items-center hover:bg-zinc-100 size-7 rounded ${
               editor.isActive("bulletList") ? "text-primary" : ""
@@ -351,8 +358,43 @@ const Tiptap = ({ user_id, note_id }: { user_id: string; note_id: string }) => {
           >
             <ListOrdered className="w-4 h-4" />
           </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().undo().run()}
+            className="text-neutral-600 transition-colors grid place-items-center hover:bg-zinc-100 size-7 rounded"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().redo().run()}
+            className="text-neutral-600 transition-colors grid place-items-center hover:bg-zinc-100 size-7 rounded"
+          >
+            <RotateCw className="w-4 h-4" />
+          </button>
         </div>
       </BubbleMenu>
+
+      <FloatingMenu
+        className="p-1 bg-white shadow-lg flex items-center rounded-md border border-neutral-300/20 backdrop-blur-lg w-max"
+        editor={editor}
+        tippyOptions={{
+          duration: 400,
+          zIndex: 100000000,
+          offset: window.innerWidth <= 768 ? [-20, 30] : [-20, 10],
+          animation: "bubbleShowUp",
+          placement: "top-start",
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleImageUpload}
+          className="text-neutral-600 transition-colors grid place-items-center hover:bg-zinc-100 size-7 rounded"
+        >
+          <ImageIcon className="w-4 h-4" />
+        </button>
+      </FloatingMenu>
+
       <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
