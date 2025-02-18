@@ -75,7 +75,7 @@ export default function VideoDetailsPage() {
 
                 {/* Chat Section */}
                 {toggleChat && (
-                    <div className='fixed inset-0 flex items-center justify-center bg-black/70 z-10'>
+                    <div className='inset-0 flex items-center top-0 justify-center bg-black/70 z-10 fixed'>
                         <div className='min-w-[80vw] max-w-md p-4 rounded-lg shadow-lg relative'>
                             <ChatComponent
                                 videoId={videoDetails.id}

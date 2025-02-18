@@ -44,8 +44,8 @@ embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2"
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
 
 # Initialize LLM
-# llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.0, max_retries=2)
-llm = ChatGroq(model="deepseek-r1-distill-qwen-32b", temperature=0.0, max_retries=2)
+llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.0, max_retries=2)
+# llm = ChatGroq(model="deepseek-r1-distill-qwen-32b", temperature=0.0, max_retries=2)
 
 
 

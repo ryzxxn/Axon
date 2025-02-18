@@ -8,11 +8,31 @@
   }
 }
 
-.bg{
-  background-image: url(../../public/grid2.svg);
-  width: auto;
+.streak{
+  background-position: center;
+  background-image: url('../../public//streak.svg');
+  background-size:cover;
   background-repeat: no-repeat;
-  background-size: cover;
+  height: 100px;
+  box-shadow: 0px 2rem 2rem rgba(114, 255, 215, 0.04);
+}
+
+.bg{
+  background-position: center;
+  background-image: url('../../public//grid2.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  height:90vh;
+  animation: fade_in 1s linear 0s 1 forwards forwards;
+}
+
+@keyframes fade_in {
+  0%{
+    opacity: 0;
+  }
+  100%{
+    opacity: 1;
+  }
 }
 
 .bur{

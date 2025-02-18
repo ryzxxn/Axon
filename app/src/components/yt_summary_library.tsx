@@ -59,14 +59,14 @@ export default function YoutubeSummaryLibrary() {
                             >
                                 <div className='min-h-[90px] max-h-[192px] w-full rounded-t-lg p-8 shadow-md flex justify-center items-center gap-1 bg'>
                                 <Image
-                                    src='/axonn.svg'
+                                    src='/axonn_black.svg'
                                     alt={video.title}
                                     className="rounded-t-sm h-6 w-6 animate-none"
                                     width={50}
                                     height={50}
                                     quality={50}
                                 />
-                                <p>Youtube</p>
+                                <p className='text-'>Youtube</p>
                                 </div>
                                 <h2 className="text-[.8rem] h-[50px] overflow-hidden py-2 px-2 line-clamp-2 text-gray-600 rounded-b-md">
                                     {video.title}

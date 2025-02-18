@@ -38,10 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <SessionProvider>
-      <div className="flex w-full flex-1 h-full">
-        <div className="p-0 border-r border w-[max-content] flex flex-col max-w-[max-content]">
+      <div className="flex w-full flex-1 h-full bg-white">
+        <div className="p-0 w-[max-content] flex flex-col max-w-[max-content]">
           <Link href="/" className="flex text-[.8rem] p-3 items-center justify-center aspect-square">
-            <Image src="/axonn.svg" height={50} width={50} alt="AXONN Logo" className="w-4 aspect-square" />
+            <Image src="/axonn_black.svg" height={50} width={50} alt="AXONN Logo" className="w-4 aspect-square" />
             {/* <p className="text-white font-bold text-[.8rem]">AXONN</p> */}
           </Link>
 
@@ -63,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <div className="flex flex-1 min-h-screen max-h-screen w-full">
-          <div className="flex flex-1 overflow-y-scroll w-full">{children}</div>
+          <div className="flex flex-1 overflow-y-scroll w-full border-l">{children}</div>
         </div>
       </div>
     </SessionProvider>
